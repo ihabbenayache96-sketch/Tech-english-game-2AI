@@ -1,0 +1,1265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1830">
+<meta name="description" content="Revision game for the Technical English course: units and measurement, mechanical, electrical, computer science and technical English.">
+<title>Debug Your English</title>
+<style>
+/* One phone-first console column. Dark navy and orange, like the course slides.
+   No external fonts or files: the page works offline in any browser. */
+:root{
+  color-scheme: dark;
+  --bg:#0d1830; --panel:#16274d; --panel-2:#1d3262; --line:#2f4574;
+  --fg:#edf2fb; --muted:#aab8d5; --accent:#eb6e2d; --on-accent:#0d1830;
+  --ok:#5ccb86; --bad:#f2675e; --prompt:#66da8d; --on-tile:#ffffff;
+  --tA:#c62828; --tB:#1565c0; --tC:#8f6a07; --tD:#6a1b9a;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --fs-xs:0.82rem; --fs-s:0.95rem; --fs-0:1.125rem; --fs-1:1.3rem; --fs-2:1.6rem; --fs-3:2.4rem; --fs-4:3.4rem;
+  --r:16px;
+}
+[hidden]{display:none !important}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:var(--fs-0);line-height:1.45;-webkit-tap-highlight-color:transparent;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{text-wrap:balance}
+button,input{font:inherit}
+button{touch-action:manipulation}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+code{font-family:var(--mono);font-size:.92em;background:rgba(255,255,255,.12);padding:.05em .35em;border-radius:6px}
+
+.app{max-width:44rem;margin-inline:auto;padding-inline:16px;padding-block:16px 48px}
+.screen{display:flex;flex-direction:column;gap:18px}
+
+/* terminal line */
+.term{font-family:var(--mono);font-size:var(--fs-xs);color:var(--muted);overflow-wrap:anywhere}
+.term .prompt{color:var(--prompt)}
+.cursor{display:inline-block;width:.55em;height:1.05em;margin-left:.25em;vertical-align:-.15em;background:var(--accent);animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* start screen */
+.eyebrow{font-family:var(--mono);font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.title{font-family:var(--mono);font-weight:700;font-size:var(--fs-3);line-height:1.05;letter-spacing:-.01em}
+.title b{color:var(--accent)}
+.lede{color:var(--muted);max-width:60ch}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
+.facts>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.facts dt{font-family:var(--mono);font-weight:700;font-size:var(--fs-1);font-variant-numeric:tabular-nums}
+.facts dd{margin:0;color:var(--muted);font-size:var(--fs-xs)}
+form.setup{display:flex;flex-direction:column;gap:20px}
+.field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.field label.lbl,legend{font-size:var(--fs-s);color:var(--muted);padding:0}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+input[type=text]{width:100%;font-size:1.125rem;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+input[type=text]::placeholder{color:var(--muted);opacity:.85}
+.options{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.opt{position:relative;display:block}
+.opt input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.opt span{display:flex;align-items:center;gap:8px;min-height:48px;padding:10px 15px;border:1px solid var(--line);border-radius:999px;background:var(--panel);font-weight:700;cursor:pointer}
+.opt span small{font-family:var(--mono);font-weight:400;color:var(--muted);font-size:var(--fs-xs)}
+.opt input:checked+span{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.opt input:checked+span small{color:var(--on-accent)}
+.opt input:focus-visible+span{outline:3px solid var(--fg);outline-offset:3px}
+
+/* buttons */
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:60px;padding:10px 16px;border:0;border-radius:var(--r);background:var(--accent);color:var(--on-accent);font-weight:700;font-size:var(--fs-1);text-align:center;cursor:pointer}
+.btn:active{transform:translateY(1px)}
+.btn.secondary{background:var(--panel-2);color:var(--fg);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+.ghost{min-height:46px;padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:none;color:var(--fg);cursor:pointer}
+.ghost:disabled{opacity:.4;cursor:default}
+.linkish{align-self:center;padding:12px;border:0;background:none;color:var(--muted);text-decoration:underline;font-size:var(--fs-s);cursor:pointer}
+.note{font-size:var(--fs-s);color:var(--muted)}
+
+/* status bar */
+.status{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:8px 12px;align-items:end;padding-block:8px 12px;background:var(--bg);border-bottom:1px solid var(--line)}
+.stat{display:flex;flex-direction:column;min-width:0}
+.stat .k{font-family:var(--mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.stat .v{font-family:var(--mono);font-weight:700;font-size:var(--fs-1);font-variant-numeric:tabular-nums}
+.lifeline{min-height:46px;padding:8px 12px;border:2px solid var(--accent);border-radius:10px;background:transparent;color:var(--accent);font-family:var(--mono);font-weight:700;cursor:pointer}
+.lifeline:disabled{border-color:var(--line);color:var(--muted);opacity:.6;cursor:default}
+.timer{grid-column:1/-1;display:flex;align-items:center;gap:10px}
+.track{flex:1;height:10px;background:var(--line);border-radius:999px;overflow:hidden}
+.bar{height:100%;width:100%;background:var(--accent);transform-origin:left center}
+.bar.is-low{background:var(--bad)}
+.tl{min-width:3.4em;font-family:var(--mono);font-size:var(--fs-s);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+
+/* question */
+.qcard{display:flex;flex-direction:column;gap:8px}
+.qmeta{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.qunit{font-family:var(--mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.1em;color:var(--accent)}
+.qhint{font-size:var(--fs-s);color:var(--muted)}
+.qtext{font-size:var(--fs-2);line-height:1.3;font-weight:700;overflow-wrap:anywhere}
+
+/* answer tiles */
+.answers{display:grid;gap:12px}
+@media (min-width:600px){.answers.cols{grid-template-columns:1fr 1fr}}
+.tile{display:flex;align-items:center;gap:14px;width:100%;min-height:72px;padding:14px 16px;border:0;border-radius:var(--r);background:var(--tile);color:var(--on-tile);font-weight:700;font-size:var(--fs-0);text-align:left;cursor:pointer;transition:transform .12s ease,opacity .2s ease}
+.tile:active{transform:scale(.98)}
+.tile .badge{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.22);font-family:var(--mono)}
+.tile .label{min-width:0;overflow-wrap:anywhere}
+.tile .mark{flex:none;margin-left:auto;font-size:1.5em;line-height:1}
+.tile:disabled{cursor:default}
+.tile.is-correct{outline:4px solid var(--ok);outline-offset:3px}
+.tile.is-wrong{outline:4px solid var(--bad);outline-offset:3px}
+.tile.is-dim,.tile.is-removed{opacity:.3}
+
+/* order */
+.picked{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:pick}
+.picked li{counter-increment:pick;display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:var(--panel);font-weight:700}
+.picked li::before{content:counter(pick);flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:var(--accent);color:var(--on-accent);font-family:var(--mono)}
+.picked li.is-correct{border-color:var(--ok)}
+.picked li.is-wrong{border-color:var(--bad)}
+.placeholder{padding:16px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:var(--fs-s)}
+.pool{display:grid;gap:10px}
+.chip{min-height:58px;padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2);color:var(--fg);font-weight:700;font-size:var(--fs-0);text-align:left;cursor:pointer}
+.chip.is-used{opacity:.3}
+.chip:disabled{cursor:default}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+
+/* match */
+.terms{display:flex;flex-wrap:wrap;gap:10px}
+.term-chip{display:flex;align-items:center;gap:10px;min-height:54px;padding:10px 16px;border:2px solid var(--line);border-radius:12px;background:var(--panel-2);color:var(--fg);font-weight:700;font-size:var(--fs-0);cursor:pointer}
+.term-chip .dot{flex:none;width:16px;height:16px;border:3px solid var(--pc);border-radius:50%;background:transparent}
+.term-chip.is-paired .dot{background:var(--pc)}
+.term-chip.is-paired{opacity:.6}
+.term-chip.is-selected{border-color:var(--accent);background:var(--panel);opacity:1}
+.defs{display:grid;gap:10px}
+.def{display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:100%;min-height:58px;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:var(--panel);color:var(--fg);font-weight:700;font-size:var(--fs-0);text-align:left;cursor:pointer}
+.def .tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;background:var(--pc);color:var(--bg);font-family:var(--mono);font-weight:700;font-size:var(--fs-xs)}
+.def.is-paired{background:var(--panel-2)}
+.def.is-correct{border-color:var(--ok)}
+.def.is-wrong{border-color:var(--bad)}
+.def:disabled,.term-chip:disabled{cursor:default}
+
+/* feedback */
+.fb{display:flex;flex-direction:column;gap:10px;padding:18px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
+.fb-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px}
+.fb h3{font-size:var(--fs-1)}
+.fb.is-ok h3{color:var(--ok)}
+.fb.is-bad h3{color:var(--bad)}
+.gain{font-family:var(--mono);font-weight:700;font-size:var(--fs-1);font-variant-numeric:tabular-nums}
+.fb.is-ok .gain{color:var(--ok)}
+.fb-answer{font-weight:700;overflow-wrap:anywhere}
+.fb-why{color:var(--muted)}
+.pop{animation:pop .45s ease}
+@keyframes pop{0%{transform:scale(.6);opacity:.2}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+
+/* end screen */
+.rank{font-family:var(--mono);font-size:var(--fs-3);line-height:1.1;color:var(--accent)}
+.player{font-weight:700}
+.bigxp{font-family:var(--mono);font-weight:700;font-size:var(--fs-4);line-height:1;font-variant-numeric:tabular-nums}
+.bigxp .unit{font-size:var(--fs-1);color:var(--muted)}
+.new-best{color:var(--ok);font-weight:700}
+h2.section{font-size:var(--fs-1)}
+.breakdown{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.breakdown li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 12px}
+.breakdown .bname{min-width:0;font-size:var(--fs-s)}
+.breakdown .bnum{font-family:var(--mono);font-size:var(--fs-s);color:var(--muted);font-variant-numeric:tabular-nums}
+.breakdown .btrack{grid-column:1/-1;height:10px;border-radius:999px;background:var(--line);overflow:hidden}
+.breakdown .bfill{height:100%;background:var(--ok)}
+.teacher{padding:14px 16px;border:1px dashed var(--accent);border-radius:12px}
+.btn-stack{display:grid;gap:10px}
+.review{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.review li{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.review .rq{font-weight:700;overflow-wrap:anywhere}
+.review .ra{color:var(--ok);overflow-wrap:anywhere}
+.review .rw{color:var(--muted);font-size:var(--fs-s)}
+.perfect{color:var(--ok);font-weight:700}
+
+@media (prefers-reduced-motion:reduce){
+  .cursor{animation:none}
+  .pop{animation:none}
+  .tile,.btn{transition:none}
+}
+</style>
+</head>
+<body>
+<noscript><p style="padding:16px">This game needs JavaScript. Please open it in Chrome, Firefox, Safari or Edge.</p></noscript>
+<main class="app">
+
+  <!-- START -->
+  <section id="start" class="screen">
+    <p class="term"><span class="prompt">student@cs-engineering</span>:~$ ./debug-your-english<span class="cursor" aria-hidden="true"></span></p>
+    <div>
+      <p class="eyebrow">Technical English · revision game</p>
+      <h1 class="title">Debug Your <b>English</b></h1>
+    </div>
+    <p class="lede" id="lede">A revision game for the whole Technical English course.</p>
+    <dl class="facts">
+      <div><dt id="factQ">0</dt><dd>questions in the bank</dd></div>
+      <div><dt>5</dt><dd>course topics</dd></div>
+      <div><dt>4</dt><dd>question types</dd></div>
+    </dl>
+    <form id="setup" class="setup" autocomplete="off">
+      <div class="field">
+        <label class="lbl" for="player">Your name or team</label>
+        <input id="player" name="player" type="text" maxlength="24" placeholder="e.g. Team Kernel">
+      </div>
+      <fieldset>
+        <legend>Topic</legend>
+        <div class="options" id="unitOptions"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Number of questions</legend>
+        <div class="options" id="lenOptions"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Mode</legend>
+        <div class="options">
+          <label class="opt"><input type="radio" name="mode" id="mode-challenge" value="challenge" checked><span>Challenge <small>timer + speed bonus</small></span></label>
+          <label class="opt"><input type="radio" name="mode" id="mode-practice" value="practice"><span>Practice <small>no timer</small></span></label>
+        </div>
+      </fieldset>
+      <button class="btn" id="startBtn" type="submit">Start the game</button>
+    </form>
+    <p class="note" id="bestLine"></p>
+  </section>
+
+  <!-- PLAY -->
+  <section id="play" class="screen" hidden>
+    <header class="status" aria-label="Game status">
+      <div class="stat"><span class="k">Question</span><span class="v" id="qnum">1/20</span></div>
+      <div class="stat"><span class="k">XP</span><span class="v" id="xp">0</span></div>
+      <div class="stat"><span class="k">Combo</span><span class="v" id="combo">0</span></div>
+      <button class="lifeline" id="fifty" type="button" title="Remove two wrong answers (once per game)">50:50</button>
+      <div class="timer" id="timer"><div class="track" aria-hidden="true"><div class="bar" id="timebar"></div></div><span class="tl" id="timeleft">20 s</span></div>
+    </header>
+    <article class="qcard">
+      <p class="term" id="qcmd">$ ask</p>
+      <div class="qmeta"><span class="qunit" id="qunit">Topic</span><span class="qhint" id="qhint">Choose one answer</span></div>
+      <h2 class="qtext" id="qtext">Question</h2>
+    </article>
+    <div id="answers" class="answers"></div>
+    <section id="fb" class="fb" hidden aria-live="polite">
+      <div class="fb-head"><h3 id="fbTitle">Correct!</h3><span id="fbGain" class="gain">+0 XP</span></div>
+      <p id="fbAnswer" class="fb-answer"></p>
+      <p id="fbWhy" class="fb-why"></p>
+      <button id="next" class="btn" type="button">Next question</button>
+    </section>
+    <button id="quit" class="linkish" type="button">Stop and see my score</button>
+  </section>
+
+  <!-- END -->
+  <section id="end" class="screen" hidden>
+    <p class="term">$ exit 0 &nbsp;# game over</p>
+    <div>
+      <p class="eyebrow">Your rank</p>
+      <h1 class="rank" id="endRank">Engineer</h1>
+    </div>
+    <p class="player" id="endName">Player</p>
+    <p class="bigxp"><span id="endXP">0</span> <span class="unit">XP</span></p>
+    <dl class="facts">
+      <div><dt id="endAcc">0/0</dt><dd>correct</dd></div>
+      <div><dt id="endPct">0%</dt><dd>accuracy</dd></div>
+      <div><dt id="endStreak">0</dt><dd>best combo</dd></div>
+    </dl>
+    <p class="new-best" id="newBest" hidden>New personal best on this device!</p>
+    <p class="note" id="endBestLine"></p>
+    <div id="breakWrap" class="screen" hidden>
+      <h2 class="section">Your score by topic</h2>
+      <ul id="breakdown" class="breakdown"></ul>
+    </div>
+    <p class="teacher">Show this screen to your teacher to claim your team’s XP.</p>
+    <div class="btn-stack">
+      <button id="retry" class="btn" type="button">Retry my mistakes</button>
+      <button id="again" class="btn secondary" type="button">Play again with new questions</button>
+      <button id="settings" class="ghost" type="button">Change topic or settings</button>
+    </div>
+    <div id="reviewWrap" class="screen">
+      <h2 class="section">Debug your mistakes</h2>
+      <ol id="review" class="review"></ol>
+    </div>
+    <p id="perfect" class="perfect" hidden>No mistakes. Nothing to debug!</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  // ================================================================
+  // TOPICS (one per part of the course)
+  // ================================================================
+  var UNITS = [
+    { id: 'units', name: 'Units & Measurement', short: 'Units & measurement' },
+    { id: 'mech',  name: 'Mechanical Engineering', short: 'Mechanical' },
+    { id: 'elec',  name: 'Electrical Engineering', short: 'Electrical' },
+    { id: 'cs',    name: 'Computer Science', short: 'Computer science' },
+    { id: 'lang',  name: 'Technical English', short: 'Technical English' }
+  ];
+
+  // ================================================================
+  // QUESTION BANK
+  //  t: 'mc'    -> a[0] is the correct answer (options are shuffled)
+  //  t: 'tf'    -> a is true or false
+  //  t: 'order' -> a is the correct order (shuffled on screen)
+  //  t: 'match' -> a is a list of [word, meaning] pairs
+  //  Text between `backticks` is shown as code.
+  // ================================================================
+  var BANK = [
+    // ---------------- UNITS & MEASUREMENT (Session 1) ----------------
+    {u:'units',t:'mc',q:'What is the SI unit of mass?',a:['the kilogram (kg)','the gram (g)','the newton (N)','the pound (lb)'],w:'The kilogram is an SI base unit. The newton measures force, not mass.'},
+    {u:'units',t:'mc',q:'What is the SI base unit of temperature?',a:['the kelvin (K)','the degree Celsius (°C)','the degree Fahrenheit (°F)','the joule (J)'],w:'We use degrees Celsius every day, but the SI base unit is the kelvin.'},
+    {u:'units',t:'mc',q:'What is the SI base unit of time?',a:['the second (s)','the minute (min)','the hour (h)','the hertz (Hz)'],w:'Minutes and hours are accepted, but the base unit is the second.'},
+    {u:'units',t:'mc',q:'Frequency is measured in…',a:['hertz (Hz)','watts (W)','volts (V)','decibels (dB)'],w:'One hertz is one cycle per second.'},
+    {u:'units',t:'mc',q:'Pressure is measured in…',a:['pascals (Pa)','newtons (N)','joules (J)','hertz (Hz)'],w:'Pressure is force per unit area. The bar is also used: 1 bar = 100 000 Pa.'},
+    {u:'units',t:'mc',q:'Speed is measured in…',a:['metres per second (m/s)','metres per second squared (m/s²)','kilograms (kg)','hertz (Hz)'],w:'Metres per second squared is the unit of acceleration.'},
+    {u:'units',t:'mc',q:'Area is measured in…',a:['square metres (m²)','cubic metres (m³)','metres per second (m/s)','newtons (N)'],w:'Cubic metres measure volume.'},
+    {u:'units',t:'tf',q:'Volume can be measured in litres or in cubic metres.',a:true,w:'1 m³ = 1 000 litres.'},
+    {u:'units',t:'mc',q:'An angle can be measured in degrees or in…',a:['radians','pascals','hertz','joules'],w:'A full turn is 360 degrees, or 2π radians.'},
+    {u:'units',t:'mc',q:'Which of these is NOT an SI base unit?',a:['the litre','the metre','the second','the kilogram'],w:'The litre is accepted for use with the SI, but the SI unit of volume is the cubic metre.'},
+    {u:'units',t:'tf',q:'One byte is equal to 8 bits.',a:true,w:'A bit is a single 0 or 1. A byte groups 8 bits.'},
+    {u:'units',t:'mc',q:'Data rate is measured in…',a:['bits per second (bit/s)','bytes (B)','hertz (Hz)','watts (W)'],w:'A rate is “per second”. Network speeds are often given in Mbit/s.'},
+    {u:'units',t:'mc',q:'Which prefix means one thousandth (10⁻³)?',a:['milli-','micro-','kilo-','mega-'],w:'Micro- is one millionth (10⁻⁶). Kilo- is one thousand (10³).'},
+    {u:'units',t:'mc',q:'Which prefix means one million (10⁶)?',a:['mega-','giga-','kilo-','micro-'],w:'Giga- means one billion (10⁹).'},
+    {u:'units',t:'tf',q:'“Kilo-” means one thousand (10³).',a:true,w:'1 kilometre = 1 000 metres.'},
+    {u:'units',t:'tf',q:'1 kilometre = 100 metres.',a:false,w:'1 kilometre = 1 000 metres.'},
+    {u:'units',t:'mc',q:'500 mA is equal to…',a:['0.5 A','5 A','50 A','0.05 A'],w:'Milli- means one thousandth: 500 ÷ 1 000 = 0.5.'},
+    {u:'units',t:'mc',q:'2 500 m is equal to…',a:['2.5 km','25 km','0.25 km','250 km'],w:'2 500 ÷ 1 000 = 2.5. Say “two point five kilometres”.'},
+    {u:'units',t:'mc',q:'3 600 seconds is equal to…',a:['1 hour','1 minute','10 minutes','1 day'],w:'60 seconds × 60 minutes = 3 600 seconds.'},
+    {u:'units',t:'order',q:'Put these prefixes in order, from smallest to largest.',a:['micro-','milli-','kilo-','mega-','giga-'],w:'10⁻⁶, 10⁻³, 10³, 10⁶, 10⁹.'},
+    {u:'units',t:'order',q:'Put these data sizes in order, from smallest to largest.',a:['bit','byte','kilobyte','megabyte','gigabyte'],w:'A byte is 8 bits; after that, each prefix multiplies by 1 000.'},
+    {u:'units',t:'mc',q:'How do you read the symbol ± aloud?',a:['plus or minus','more and less','positive negative','add or remove'],w:'“230 V ± 10 %” is read “two hundred and thirty volts, plus or minus ten percent”.'},
+    {u:'units',t:'mc',q:'How do you read the symbol ≈ aloud?',a:['approximately equal to','not equal to','identical to','greater than'],w:'≠ is read “not equal to”.'},
+    {u:'units',t:'mc',q:'How do you read the symbol ≤ aloud?',a:['less than or equal to','greater than or equal to','much less than','not less than'],w:'≥ is read “greater than or equal to”.'},
+    {u:'units',t:'mc',q:'How do you read 3.5 × 10² aloud?',a:['three point five times ten to the power of two','three comma five multiplied ten two','three and five times one hundred two','thirty-five times ten'],w:'English uses a decimal point, read “point”. You can also say “ten squared”.'},
+    {u:'units',t:'mc',q:'How do you read 12.5 km ± 0.3 km?',a:['twelve point five kilometres, plus or minus zero point three kilometres','twelve comma five kilometres, more or less zero comma three','twelve and five kilometres, plus minus three','one two five kilometres, plus or minus three'],w:'Decimals use “point”. British speakers also say “nought point three”.'},
+    {u:'units',t:'mc',q:'How do you read 25 °C?',a:['twenty-five degrees Celsius','twenty-five Celsius degrees','twenty-five degree C','twenty-five centigrade Celsius'],w:'Say the number, then “degrees”, then the scale.'},
+    {u:'units',t:'mc',q:'How do you read 2.4 GHz?',a:['two point four gigahertz','two comma four giga','twenty-four gigahertz','two point four G-H-Z hertz'],w:'2.4 GHz is a common Wi-Fi frequency band.'},
+    {u:'units',t:'mc',q:'How do you read 50 %?',a:['fifty percent','fifty for cent','fifty percents','five zero percent'],w:'After a number, say “percent”, without -s. British English sometimes writes “per cent”.'},
+    {u:'units',t:'mc',q:'Accuracy is…',a:['how close a measurement is to the true value','how consistent repeated measurements are','the number of digits in a result','the unit of a measurement'],w:'Consistency between repeated measurements is precision.'},
+    {u:'units',t:'mc',q:'Precision is…',a:['how consistent repeated measurements are','how close a measurement is to the true value','the speed of a measurement','the size of the instrument'],w:'Closeness to the true value is accuracy.'},
+    {u:'units',t:'tf',q:'A measurement can be precise without being accurate.',a:true,w:'Repeated values can be very close to each other but all far from the true value.'},
+    {u:'units',t:'mc',q:'The digits in a measurement that carry meaningful precision are called…',a:['significant figures','prime numbers','unit prefixes','decimal fractions'],w:'2.50 m has three significant figures.'},
+    {u:'units',t:'mc',q:'Which instrument measures elapsed time?',a:['a stopwatch','a caliper','a balance','a thermometer'],w:'A caliper measures small lengths; a balance measures mass.'},
+    {u:'units',t:'mc',q:'Which instrument measures mass?',a:['a balance (a scale)','a caliper','a stopwatch','a voltmeter'],w:'A voltmeter measures voltage.'},
+    {u:'units',t:'mc',q:'Which instrument measures small lengths with high precision?',a:['a caliper','a balance','a stopwatch','a barometer'],w:'A barometer measures atmospheric pressure.'},
+    {u:'units',t:'mc',q:'A unit prefix…',a:['scales a unit by a power of ten','converts a unit into kelvin','measures time','names a new physical quantity'],w:'Kilo-, mega-, milli- and micro- are unit prefixes.'},
+    {u:'units',t:'mc',q:'Unit conversion means…',a:['expressing a quantity in a different unit','changing the quantity itself','measuring a quantity twice','rounding a number'],w:'For example, 1 m/s = 3.6 km/h.'},
+    {u:'units',t:'mc',q:'Complete: “The new CPU is ___ fast as the old one.”',a:['twice as','twice than','two times more','double as'],w:'Use “twice as … as” and “half as … as”.'},
+    {u:'units',t:'mc',q:'Complete: “Latency is lower ___ before.”',a:['than','then','that','as'],w:'“Than” compares. “Then” means “after that”.'},
+    {u:'units',t:'mc',q:'Complete: “Both values are equal ___ 10 MB.”',a:['to','with','than','at'],w:'We say “equal to”, “the same as” and “different from”.'},
+    {u:'units',t:'mc',q:'Complete: “The figure shows the relationship ___ time and temperature.”',a:['between','among','with','of'],w:'Use “between … and …” for two things.'},
+    {u:'units',t:'mc',q:'A curve that goes up and down irregularly…',a:['fluctuates','levels off','reaches a peak','remains stable'],w:'“Vary” is a synonym of “fluctuate”.'},
+    {u:'units',t:'mc',q:'A value that rises and then stops changing…',a:['levels off','fluctuates','declines','drops'],w:'“Plateau” and “remain stable” mean the same thing.'},
+    {u:'units',t:'mc',q:'Which verb means “to go down”?',a:['decrease','increase','rise','grow'],w:'Other verbs for going down: decline, fall, drop.'},
+    {u:'units',t:'mc',q:'The highest point of a curve is its…',a:['peak','plateau','slope','axis'],w:'“The temperature reached a peak at noon.”'},
+    {u:'units',t:'match',q:'Match each quantity with its SI unit.',a:[['mass','kilogram'],['time','second'],['frequency','hertz'],['pressure','pascal']],w:'All four are SI units.'},
+    {u:'units',t:'match',q:'Match each symbol with how you read it.',a:[['±','plus or minus'],['≈','approximately equal to'],['≠','not equal to'],['≥','greater than or equal to']],w:'Practise reading them aloud.'},
+    {u:'units',t:'match',q:'Match each prefix with its value.',a:[['kilo-','10³'],['mega-','10⁶'],['milli-','10⁻³'],['micro-','10⁻⁶']],w:'Giga- (10⁹) and nano- (10⁻⁹) follow the same pattern.'},
+    {u:'units',t:'mc',q:'Which noun belongs to the verb “measure”?',a:['measurement','measurable','measured','measurably'],w:'Measurable is the adjective; measurably is the adverb.'},
+    {u:'units',t:'mc',q:'Which verb means “to change something from one form into another”?',a:['convert','consist','indicate','determine'],w:'“The sensor converts light into an electrical signal.”'},
+    {u:'units',t:'mc',q:'Complete: “The system ___ three modules.”',a:['consists of','consists in','is consisted of','consist'],w:'“Consist of” is never used in the passive.'},
+    {u:'units',t:'mc',q:'Complete: “A red light ___ an error.”',a:['indicates','consists','transmits','generates'],w:'To indicate means to show or to signal.'},
+    {u:'units',t:'mc',q:'Which definition is grammatically correct?',a:['A caliper is an instrument that measures small lengths.','A caliper is an instrument who measures small lengths.','A caliper is instrument that measures small lengths.','A caliper it is an instrument that measures small lengths.'],w:'Use “that” or “which” for things, and keep the article “an”.'},
+
+    // ---------------- MECHANICAL ENGINEERING (Sessions 2–3) ----------------
+    {u:'mech',t:'mc',q:'Which tool is used to grip and turn nuts and bolts?',a:['a wrench','a hammer','a saw','a file'],w:'In British English, a wrench is usually called a spanner.'},
+    {u:'mech',t:'mc',q:'In British English, a “wrench” is usually called a…',a:['spanner','screwdriver','vice','mallet'],w:'“Wrench” is the American word.'},
+    {u:'mech',t:'mc',q:'Which tool holds a workpiece firmly while you work on it?',a:['a vice','a drill','a saw','a file'],w:'The American spelling is “vise”.'},
+    {u:'mech',t:'mc',q:'Which tool has a rough surface used to smooth or shape metal by rubbing?',a:['a file','a saw','a hammer','a screwdriver'],w:'A saw has a toothed blade for cutting.'},
+    {u:'mech',t:'mc',q:'Which tool has a toothed blade for cutting wood or metal?',a:['a saw','a file','a vice','a spanner'],w:'A hacksaw is a saw for cutting metal.'},
+    {u:'mech',t:'mc',q:'Which power tool bores holes in a material?',a:['a drill','a vice','a file','a wrench'],w:'A drill can also drive screws.'},
+    {u:'mech',t:'mc',q:'Which hand tool has two handles and jaws to grip, bend or cut wire?',a:['pliers','a file','a saw','a vice'],w:'“Pliers” is plural: we say “a pair of pliers”.'},
+    {u:'mech',t:'mc',q:'A screwdriver is used to…',a:['turn screws','cut metal sheets','measure lengths','hold a workpiece'],w:'Phillips and flat-head are common screwdriver types.'},
+    {u:'mech',t:'mc',q:'A hammer is mainly used to…',a:['strike nails or other objects','tighten bolts','measure angles','cut wires'],w:'A claw hammer can also pull nails out.'},
+    {u:'mech',t:'match',q:'Match each tool with its use.',a:[['wrench','turns nuts and bolts'],['vice','holds a workpiece'],['file','smooths metal'],['drill','bores holes']],w:'Pattern: tool + “is used to” + verb.'},
+    {u:'mech',t:'mc',q:'Steel is an alloy of iron and…',a:['carbon','copper','aluminium','tin'],w:'Stainless steel also contains chromium.'},
+    {u:'mech',t:'mc',q:'Which metal is lightweight and resists corrosion?',a:['aluminium','cast iron','lead','tungsten'],w:'It is used in aircraft and electronics housings. American spelling: aluminum.'},
+    {u:'mech',t:'mc',q:'Which metal is widely used in electrical wiring?',a:['copper','cast iron','lead','titanium'],w:'Copper is soft and conducts electricity very well.'},
+    {u:'mech',t:'mc',q:'An alloy is…',a:['a metal mixed with one or more other elements','a pure metal','a type of plastic','a cutting tool'],w:'Steel (iron + carbon) and brass (copper + zinc) are alloys.'},
+    {u:'mech',t:'tf',q:'Cast iron is hard but brittle.',a:true,w:'It is shaped by pouring molten iron into a mould.'},
+    {u:'mech',t:'tf',q:'Brass is an alloy of copper and zinc.',a:true,w:'Bronze is mainly copper and tin.'},
+    {u:'mech',t:'mc',q:'A gearbox is used to…',a:['change speed or torque','stop a vehicle','cool the engine','filter the oil'],w:'It uses gears between the motor and the output shaft.'},
+    {u:'mech',t:'mc',q:'Which mechanism connects or disconnects two rotating shafts?',a:['a clutch','a brake','a bearing','a radiator'],w:'In a manual car, you press the clutch pedal to change gear.'},
+    {u:'mech',t:'mc',q:'A brake usually slows a machine by…',a:['friction','compression','evaporation','lubrication'],w:'Friction turns motion into heat.'},
+    {u:'mech',t:'mc',q:'Which component lets a part rotate with less friction?',a:['a bearing','a clutch','a spark plug','a vice'],w:'Ball bearings are a common type.'},
+    {u:'mech',t:'mc',q:'A rotating rod that transmits power from one part of a machine to another is a…',a:['shaft','spring','valve','file'],w:'A crankshaft and a camshaft are special shafts.'},
+    {u:'mech',t:'mc',q:'Which part turns rotation into back-and-forth motion?',a:['a cam','a pulley','a bearing','a radiator'],w:'In an engine, cams open and close the valves.'},
+    {u:'mech',t:'mc',q:'A spring…',a:['stores energy when it is compressed or stretched','cools the engine','holds a workpiece','measures pressure'],w:'It returns to its shape when the force is removed.'},
+    {u:'mech',t:'mc',q:'A wheel with a groove, used with a rope or a belt, is a…',a:['pulley','gear','cam','bearing'],w:'Pulleys lift loads or transmit motion.'},
+    {u:'mech',t:'mc',q:'In a lever, the pivot point is called the…',a:['fulcrum','effort','load','axle'],w:'The effort is the force you apply; the load is what you move.'},
+    {u:'mech',t:'mc',q:'In a lever, the force you apply is called the…',a:['effort','load','fulcrum','pulley'],w:'“The effort is applied at the end of the bar.”'},
+    {u:'mech',t:'tf',q:'Moving the fulcrum closer to the load reduces the effort you need.',a:true,w:'The effort arm becomes longer, so you need less force.'},
+    {u:'mech',t:'mc',q:'Which part converts the linear motion of the piston into rotation?',a:['the crankshaft','the spark plug','the valve','the radiator'],w:'It turns the up-and-down motion into rotation.'},
+    {u:'mech',t:'mc',q:'The chamber in which the piston moves is the…',a:['cylinder','radiator','gearbox','duct'],w:'Combustion takes place in the cylinder.'},
+    {u:'mech',t:'mc',q:'In an engine, a valve…',a:['opens and closes to control the flow of gases','ignites the fuel','stores the oil','turns the wheels'],w:'Intake valves let air in; exhaust valves let burnt gases out.'},
+    {u:'mech',t:'mc',q:'Which component ignites the fuel-air mixture in a petrol engine?',a:['the spark plug','the injector','the turbocharger','the radiator'],w:'It produces an electric spark.'},
+    {u:'mech',t:'mc',q:'How does a diesel engine ignite its fuel?',a:['with the heat of compression','with a spark plug','with a flame from the battery','with friction in the gearbox'],w:'Compressing air makes it very hot, so the injected fuel ignites by itself.'},
+    {u:'mech',t:'order',q:'Put the four strokes of a four-stroke engine in order.',a:['Intake','Compression','Power (combustion)','Exhaust'],w:'Remember: suck, squeeze, bang, blow.'},
+    {u:'mech',t:'mc',q:'A two-stroke engine produces a power stroke…',a:['every revolution','every second revolution','every fourth revolution','only at start-up'],w:'A four-stroke engine produces one every second revolution.'},
+    {u:'mech',t:'tf',q:'A four-stroke engine is usually heavier but more fuel-efficient than a two-stroke engine.',a:true,w:'Two-stroke engines are light and simple: they are used in chainsaws and small scooters.'},
+    {u:'mech',t:'mc',q:'Which component releases the engine’s heat into the air?',a:['the radiator','the injector','the piston','the clutch'],w:'The coolant carries the heat from the engine to the radiator.'},
+    {u:'mech',t:'mc',q:'The liquid that carries heat away from the engine is the…',a:['coolant','lubricant','refrigerant','fuel'],w:'A refrigerant is used in air conditioners and refrigerators.'},
+    {u:'mech',t:'mc',q:'A lubricant is used to…',a:['reduce friction and wear','ignite the fuel','raise the pressure','cool the passengers'],w:'Engine oil is a lubricant.'},
+    {u:'mech',t:'mc',q:'An injector…',a:['sprays a precise amount of fuel into the engine','releases heat into the air','stops the wheels','measures the oil pressure'],w:'Modern engines use electronic fuel injection.'},
+    {u:'mech',t:'mc',q:'A turbocharger is driven by…',a:['the exhaust gases','the brake pedal','the battery','the coolant'],w:'It forces more air into the engine to increase power.'},
+    {u:'mech',t:'mc',q:'Which process pours molten metal into a mould?',a:['casting','forging','milling','extrusion'],w:'American spelling: mold.'},
+    {u:'mech',t:'mc',q:'Which process shapes hot metal by hammering or pressing?',a:['forging','casting','grinding','drawing'],w:'Forged parts are very strong.'},
+    {u:'mech',t:'mc',q:'Which process removes material with a rotating cutter?',a:['milling','casting','welding','bending'],w:'It is done on a milling machine.'},
+    {u:'mech',t:'mc',q:'Which process PUSHES material through a die to form a long shape?',a:['extrusion','drawing','rolling','forging'],w:'Drawing PULLS the metal through the die; extrusion PUSHES it.'},
+    {u:'mech',t:'mc',q:'Which process PULLS metal through a die to reduce its diameter?',a:['drawing','extrusion','casting','welding'],w:'Wire is made by drawing.'},
+    {u:'mech',t:'mc',q:'Which process joins two metal parts using heat?',a:['welding','grinding','milling','rolling'],w:'The person who does it is a welder.'},
+    {u:'mech',t:'mc',q:'Which process shapes a rotating workpiece with a cutting tool on a lathe?',a:['turning','drilling','forging','casting'],w:'On a lathe the workpiece turns; on a milling machine the cutter turns.'},
+    {u:'mech',t:'mc',q:'Which process removes material with an abrasive wheel?',a:['grinding','rolling','bending','forging'],w:'Grinding gives a smooth final finish.'},
+    {u:'mech',t:'mc',q:'Which process shapes metal by passing it between rollers?',a:['rolling','drawing','casting','milling'],w:'Metal sheets are made by rolling.'},
+    {u:'mech',t:'mc',q:'Which process shapes a sheet or a bar by applying force, without cutting it?',a:['bending','grinding','drilling','milling'],w:'Grinding, drilling and milling all remove material.'},
+    {u:'mech',t:'match',q:'Match each process with its definition.',a:[['casting','molten metal poured into a mould'],['forging','hot metal hammered or pressed'],['milling','material removed by a rotating cutter'],['welding','two parts joined with heat']],w:'Process nouns often end in -ing.'},
+    {u:'mech',t:'mc',q:'Which word names the person or the machine that welds?',a:['welder','welding','welded','welds'],w:'-ing names the process; -er or -or names the person or machine: welder, extruder.'},
+    {u:'mech',t:'mc',q:'In an air conditioner, which component releases heat to the outside air?',a:['the condenser','the evaporator','the thermostat','the duct'],w:'In the condenser, the refrigerant turns from gas back into liquid.'},
+    {u:'mech',t:'mc',q:'Which component absorbs heat from the room and cools the air?',a:['the evaporator','the condenser','the compressor','the radiator'],w:'The refrigerant evaporates as it absorbs heat.'},
+    {u:'mech',t:'tf',q:'The condenser absorbs heat from the room.',a:false,w:'The evaporator absorbs heat from the room; the condenser releases it outside.'},
+    {u:'mech',t:'order',q:'Put the refrigeration cycle in order, starting with the compressor.',a:['Compressor','Condenser','Expansion valve','Evaporator'],w:'Compression, condensation, expansion, evaporation, then back to the compressor.'},
+    {u:'mech',t:'match',q:'Match each air-conditioning part with its job.',a:[['compressor','raises the pressure of the gas'],['condenser','releases heat outside'],['evaporator','absorbs heat from the room'],['thermostat','controls the temperature']],w:'Together they form the refrigeration cycle.'},
+    {u:'mech',t:'mc',q:'A thermostat…',a:['senses the temperature and controls the system','pumps the refrigerant','joins two metal parts','stores electrical energy'],w:'It keeps the temperature at the value you set.'},
+    {u:'mech',t:'mc',q:'A duct is…',a:['a tube that carries air inside a building','a cutting tool','a type of alloy','an engine valve'],w:'Central air-conditioning systems send air through ducts.'},
+    {u:'mech',t:'mc',q:'A split air-conditioning system has…',a:['an indoor unit and an outdoor unit','one central plant with ducts','no compressor','only a fan'],w:'A central system cools a whole building through ducts.'},
+    {u:'mech',t:'mc',q:'Corrosion is…',a:['chemical damage, such as rust','a thin break in a material','an escape of fluid','rapid back-and-forth movement'],w:'Rust is the corrosion of iron and steel.'},
+    {u:'mech',t:'mc',q:'A thin break in a material is a…',a:['crack','leak','wear','surge'],w:'“A crack appeared in the shaft.”'},
+    {u:'mech',t:'mc',q:'An unwanted escape of a liquid or a gas is a…',a:['leak','crack','wear','vibration'],w:'“There is an oil leak under the car.”'},
+    {u:'mech',t:'mc',q:'Rapid back-and-forth movement is called…',a:['vibration','corrosion','wear','friction'],w:'Strong vibration can damage parts.'},
+    {u:'mech',t:'mc',q:'The gradual loss of material caused by use and friction is called…',a:['wear','a leak','a crack','corrosion'],w:'“The bearing shows signs of wear.”'},
+    {u:'mech',t:'order',q:'Changing the oil: put the steps in order.',a:['Drain the old oil','Remove the old filter','Fit the new filter','Refill with fresh oil','Check the oil level'],w:'Instructions use the imperative and words like first, next, then, finally.'},
+    {u:'mech',t:'mc',q:'Which sentence is an instruction (imperative)?',a:['Tighten the bolt by hand.','The bolt is tightened by hand.','He tightens the bolt by hand.','Tightening the bolt by hand.'],w:'The imperative is the verb without a subject.'},
+    {u:'mech',t:'mc',q:'Complete: “A petrol engine uses a spark plug, ___ a diesel engine relies on compression.”',a:['whereas','because','therefore','so'],w:'Contrast words: whereas, while, in contrast, on the other hand.'},
+    {u:'mech',t:'mc',q:'Complete: “The coolant level was too low. ___, the engine overheated.”',a:['As a result','Whereas','Although','Unless'],w:'Cause and effect: because, as a result, therefore.'},
+
+    // ---------------- ELECTRICAL ENGINEERING (Session 4) ----------------
+    {u:'elec',t:'mc',q:'A motor converts…',a:['electrical energy into mechanical energy','mechanical energy into electrical energy','heat into light','alternating current into direct current'],w:'A generator does the opposite.'},
+    {u:'elec',t:'mc',q:'A generator converts…',a:['mechanical energy into electrical energy','electrical energy into mechanical energy','light into sound','direct current into alternating current'],w:'In a power plant, a turbine spins the generator.'},
+    {u:'elec',t:'mc',q:'An alternator is a generator that produces…',a:['alternating current (AC)','only light','only heat','compressed air'],w:'In a car, diodes then convert its AC into DC for the battery.'},
+    {u:'elec',t:'mc',q:'The rotating part of an electric machine is the…',a:['rotor','stator','winding','casing'],w:'Rotor rotates; stator is stationary.'},
+    {u:'elec',t:'mc',q:'The fixed part that surrounds the rotor is the…',a:['stator','rotor','shaft','fan'],w:'“Stator” comes from “stationary”.'},
+    {u:'elec',t:'mc',q:'A winding is…',a:['a coil of wire that creates a magnetic field when current flows','a type of fuse','a cooling fan','a battery cell'],w:'Machines have windings on the stator, and often on the rotor too.'},
+    {u:'elec',t:'mc',q:'Complete: “A moving magnetic field ___ a current in a coil.”',a:['induces','deletes','reflects','stores'],w:'This is electromagnetic induction, the principle of generators and alternators.'},
+    {u:'elec',t:'tf',q:'Direct current (DC) reverses its direction periodically.',a:false,w:'Alternating current (AC) reverses its direction; DC flows in one direction.'},
+    {u:'elec',t:'mc',q:'Which is a typical source of direct current?',a:['a battery','a mains socket','the power grid','a transformer'],w:'Mains sockets and the power grid supply AC.'},
+    {u:'elec',t:'mc',q:'Which device raises or lowers the voltage of alternating current?',a:['a transformer','a diode','a capacitor','a sensor'],w:'Transformers are used everywhere in the power grid.'},
+    {u:'elec',t:'tf',q:'A transformer works with direct current (DC).',a:false,w:'A transformer needs a changing current: it works only with AC.'},
+    {u:'elec',t:'mc',q:'A substation…',a:['changes the voltage of electricity in the grid','generates electricity from wind','stores electricity in batteries','measures your electricity bill'],w:'The meter at home measures your consumption.'},
+    {u:'elec',t:'mc',q:'Transmission lines carry electricity…',a:['at high voltage over long distances','at low voltage inside homes','as pulses of light','only underground'],w:'High voltage reduces the losses over long distances.'},
+    {u:'elec',t:'mc',q:'The three main parts of the power grid are generation, transmission and…',a:['distribution','compression','conversion','evaporation'],w:'Distribution lines bring electricity into neighbourhoods.'},
+    {u:'elec',t:'order',q:'Put the power grid in order, from the producer to your home.',a:['Power plant','Transmission line','Substation','Distribution line','Home'],w:'Generation, transmission, distribution.'},
+    {u:'elec',t:'mc',q:'Any device that consumes electrical power is a…',a:['load','source','grid','substation'],w:'A lamp, a motor or a computer is a load.'},
+    {u:'elec',t:'mc',q:'A resistor…',a:['limits the flow of current','stores energy in an electric field','lets current flow in one direction only','switches or amplifies signals'],w:'Resistance is measured in ohms.'},
+    {u:'elec',t:'mc',q:'A capacitor…',a:['stores energy in an electric field','stores energy in a magnetic field','converts AC into DC','amplifies signals'],w:'An inductor stores energy in a magnetic field.'},
+    {u:'elec',t:'mc',q:'An inductor stores energy in…',a:['a magnetic field','an electric field','a chemical reaction','a spring'],w:'A capacitor stores energy in an electric field.'},
+    {u:'elec',t:'mc',q:'Which component lets current flow in only one direction?',a:['a diode','a resistor','a capacitor','a transformer'],w:'Diodes are used to convert AC into DC.'},
+    {u:'elec',t:'mc',q:'A transistor is used to…',a:['switch or amplify electronic signals','store energy','raise AC voltage','measure temperature'],w:'Billions of transistors are inside a modern processor.'},
+    {u:'elec',t:'mc',q:'An integrated circuit is…',a:['a chip containing many interconnected transistors','a long cable','a power plant','a type of battery'],w:'A CPU is an integrated circuit.'},
+    {u:'elec',t:'mc',q:'A sensor…',a:['detects a physical change and turns it into an electrical signal','produces light','limits current','stores data'],w:'Temperature, light and pressure sensors are common.'},
+    {u:'elec',t:'mc',q:'A relay is…',a:['a switch in which a small current controls a larger circuit','a type of resistor','an antenna','a battery'],w:'It uses an electromagnet to move a contact.'},
+    {u:'elec',t:'order',q:'How a relay works: put the steps in order.',a:['Current flows in the coil','A magnetic field appears','The contact is pulled','The load circuit closes'],w:'Small current, magnetic field, moving contact, larger circuit switched on.'},
+    {u:'elec',t:'match',q:'Match each component with its function.',a:[['resistor','limits current'],['capacitor','stores energy in an electric field'],['diode','lets current flow one way only'],['transistor','switches or amplifies signals']],w:'These four components are in almost every circuit.'},
+    {u:'elec',t:'mc',q:'Which material resists the flow of electric current?',a:['an insulator, such as rubber','a conductor, such as copper','a metal wire','salt water'],w:'Conductors, like copper, let current pass easily.'},
+    {u:'elec',t:'tf',q:'Copper is a good conductor of electricity.',a:true,w:'That is why it is used in cables and windings.'},
+    {u:'elec',t:'mc',q:'Which unit measures voltage?',a:['the volt (V)','the ampere (A)','the ohm (Ω)','the watt (W)'],w:'Voltage is the potential difference between two points.'},
+    {u:'elec',t:'mc',q:'Which unit measures electric current?',a:['the ampere (A)','the volt (V)','the watt (W)','the hertz (Hz)'],w:'People often say “amp” for short.'},
+    {u:'elec',t:'mc',q:'Which unit measures resistance?',a:['the ohm (Ω)','the farad (F)','the watt (W)','the tesla (T)'],w:'The farad measures capacitance.'},
+    {u:'elec',t:'mc',q:'Which unit measures power?',a:['the watt (W)','the volt (V)','the ohm (Ω)','the coulomb (C)'],w:'Power = voltage × current.'},
+    {u:'elec',t:'match',q:'Match each quantity with its unit.',a:[['voltage','volt'],['current','ampere'],['resistance','ohm'],['power','watt']],w:'Ohm’s law links three of them: V = R × I.'},
+    {u:'elec',t:'mc',q:'How do you read 230 V?',a:['two hundred and thirty volts','two three zero volt','two hundreds thirty volts','two hundred thirty voltage'],w:'“Hundred” never takes -s after a number. Americans often drop “and”.'},
+    {u:'elec',t:'mc',q:'A multimeter measures…',a:['voltage, current and resistance','only temperature','only light','pressure and volume'],w:'It combines a voltmeter, an ammeter and an ohmmeter.'},
+    {u:'elec',t:'mc',q:'A sudden, brief rise in voltage is a…',a:['surge','outage','overload','short circuit'],w:'“A power surge damaged the router.”'},
+    {u:'elec',t:'mc',q:'A period without electricity is an…',a:['outage','overload','surge','antenna'],w:'“The outage lasted two hours.” You can also say a blackout or a power cut.'},
+    {u:'elec',t:'mc',q:'An unintended low-resistance path for the current is a…',a:['short circuit','surge','load','handover'],w:'It can cause very high currents and fires.'},
+    {u:'elec',t:'mc',q:'Too much current for a circuit is an…',a:['overload','outage','antenna','alternator'],w:'“The overload tripped the breaker.”'},
+    {u:'elec',t:'mc',q:'Which device automatically cuts a circuit to protect it?',a:['a circuit breaker','an antenna','a capacitor','a photodiode'],w:'A fuse does the same job, but it must be replaced after it blows.'},
+    {u:'elec',t:'tf',q:'When a circuit breaker “trips”, it cuts the circuit.',a:true,w:'After fixing the fault, you reset the breaker.'},
+    {u:'elec',t:'match',q:'Match each fault with its meaning.',a:[['surge','a brief rise in voltage'],['outage','a period without power'],['short circuit','an unintended low-resistance path'],['overload','too much current']],w:'These words appear in every maintenance report.'},
+    {u:'elec',t:'mc',q:'An antenna…',a:['sends or receives radio signals','stores electrical energy','limits current','converts light into current'],w:'Your phone contains several antennas.'},
+    {u:'elec',t:'mc',q:'When transmitting, an antenna converts an electrical signal into…',a:['an electromagnetic wave','heat','direct current','sound'],w:'When receiving, it does the reverse.'},
+    {u:'elec',t:'mc',q:'A fixed station that communicates with the mobile phones in its area is a…',a:['base station','substation','power plant','relay'],w:'Base stations are mounted on masts and rooftops.'},
+    {u:'elec',t:'mc',q:'Transferring a call from one base station to another is called…',a:['handover','bandwidth','coverage','attenuation'],w:'It happens when you move from one cell to another. American English: handoff.'},
+    {u:'elec',t:'mc',q:'The area where a network signal is available is the…',a:['coverage','bandwidth','latency','handover'],w:'“There is no coverage in this valley.”'},
+    {u:'elec',t:'mc',q:'Bandwidth is…',a:['the range of frequencies, or the data capacity, of a link','the length of a cable','the weight of an antenna','the duration of a call'],w:'More bandwidth means more data per second.'},
+    {u:'elec',t:'mc',q:'Optical fibre carries data as…',a:['pulses of light','electrical pulses','sound waves','magnetic fields'],w:'A laser sends the light; a photodiode receives it.'},
+    {u:'elec',t:'mc',q:'Which component converts received light back into an electrical signal?',a:['a photodiode','a laser','a resistor','an alternator'],w:'The laser is on the transmitter side.'},
+    {u:'elec',t:'mc',q:'The gradual loss of signal strength along a cable or a fibre is…',a:['attenuation','amplification','handover','coverage'],w:'Amplifiers or repeaters compensate for it.'},
+    {u:'elec',t:'order',q:'Put the parts of an optical link in order.',a:['Transmitter (laser)','Optical fibre','Receiver (photodiode)'],w:'Electrical signal, then light, then an electrical signal again.'},
+    {u:'elec',t:'tf',q:'Optical fibre is immune to electromagnetic interference.',a:true,w:'It carries light, not electrical current, so nearby electrical noise does not affect it.'},
+    {u:'elec',t:'mc',q:'Which is NOT a renewable energy source?',a:['coal','solar','wind','geothermal'],w:'Coal is a fossil fuel. Hydro and biomass are also renewable.'},
+    {u:'elec',t:'tf',q:'Solar and wind power are intermittent.',a:true,w:'They produce power only when the sun shines or the wind blows.'},
+    {u:'elec',t:'mc',q:'LiDAR measures distances with…',a:['laser light','sound waves','radio waves','magnets'],w:'Sonar uses sound waves; radar uses radio waves.'},
+    {u:'elec',t:'mc',q:'LiDAR calculates a distance from…',a:['the time the light takes to come back','the colour of the object','the battery level','the size of the antenna'],w:'This is called the time of flight.'},
+    {u:'elec',t:'mc',q:'The 3D data produced by a LiDAR scan is called a…',a:['point cloud','pixel grid','wave table','bitmap'],w:'Each point has x, y and z coordinates.'},
+    {u:'elec',t:'mc',q:'In a car alternator, which components convert AC into DC for the battery?',a:['diodes','spark plugs','pistons','valves'],w:'A set of diodes forms a rectifier.'},
+
+    // ---------------- COMPUTER SCIENCE (Session 5) ----------------
+    {u:'cs',t:'mc',q:'What does `ALU` stand for?',a:['Arithmetic Logic Unit','Advanced Logic Utility','Automatic Load Unit','Array Logic Unit'],w:'The ALU performs the arithmetic and logical operations of the CPU.'},
+    {u:'cs',t:'mc',q:'What is the job of the control unit?',a:['It fetches and decodes instructions and directs the other components','It performs additions and subtractions','It stores files permanently','It cools the processor'],w:'Arithmetic is done by the ALU.'},
+    {u:'cs',t:'mc',q:'Which memory loses its content when the power is switched off?',a:['RAM','ROM','an SSD','a hard disk'],w:'RAM is volatile. ROM, SSDs and hard disks keep their data without power.'},
+    {u:'cs',t:'mc',q:'ROM is mainly used to store…',a:['firmware, such as start-up code','the programs you are running','web pages','network packets'],w:'ROM is non-volatile: it keeps its content without power.'},
+    {u:'cs',t:'mc',q:'Which is the fastest type of memory?',a:['registers','cache','RAM','an SSD'],w:'Registers are inside the CPU: the smallest, fastest and most expensive storage.'},
+    {u:'cs',t:'mc',q:'Cache is…',a:['a small, fast memory close to the CPU','the main memory of the computer','a backup copy in the cloud','a type of network cable'],w:'It keeps copies of frequently used data. Pronounce it like “cash”.'},
+    {u:'cs',t:'order',q:'Put the memory hierarchy in order, from fastest to slowest.',a:['Registers','Cache','RAM','SSD'],w:'Faster memory is smaller and more expensive.'},
+    {u:'cs',t:'order',q:'Put the instruction cycle in order.',a:['Fetch','Decode','Execute'],w:'The control unit fetches the instruction, decodes it, and then it is executed, often by the ALU.'},
+    {u:'cs',t:'mc',q:'The program counter (PC) holds…',a:['the address of the next instruction','the result of the last addition','the number of running programs','the clock speed'],w:'It is incremented after each fetch.'},
+    {u:'cs',t:'mc',q:'“Does the CPU have a multiply instruction?” This is a question of computer…',a:['architecture','organisation','networking','compilation'],w:'Architecture is what the programmer can see. Organisation is how the hardware implements it.'},
+    {u:'cs',t:'mc',q:'“Is the cache built with SRAM?” This is a question of computer…',a:['organisation','architecture','programming','networking'],w:'Hardware details hidden from the programmer belong to organisation.'},
+    {u:'cs',t:'mc',q:'An instruction set architecture (ISA), such as x86-64 or ARM, is…',a:['the set of instructions a processor can execute','a list of installed programs','a network protocol','the speed of the bus'],w:'It is the interface between hardware and software.'},
+    {u:'cs',t:'tf',q:'A clock speed of 3 GHz means 3 billion cycles per second.',a:true,w:'Giga means 10⁹, and one hertz is one cycle per second.'},
+    {u:'cs',t:'mc',q:'A “1 TB” drive shows about 931 GB in Windows. Why?',a:['Windows divides by 2³⁰, not by 10⁹','The drive is damaged','Windows hides 69 GB for itself','The files are compressed'],w:'10¹² bytes ÷ 2³⁰ ≈ 931. The real unit is the gibibyte (GiB).'},
+    {u:'cs',t:'mc',q:'In the von Neumann model, data and instructions are stored…',a:['in the same memory','in two separate memories','only in the registers','only on the hard disk'],w:'Separate memories for data and instructions is the Harvard architecture.'},
+    {u:'cs',t:'mc',q:'A bus is…',a:['a set of lines carrying data, addresses and control signals','a cooling system for the CPU','a program that stores the operating system','a device that converts AC into DC'],w:'A computer has a data bus, an address bus and a control bus.'},
+    {u:'cs',t:'match',q:'Match each acronym with its meaning.',a:[['CPU','Central Processing Unit'],['RAM','Random-Access Memory'],['DNS','Domain Name System'],['LAN','Local Area Network']],w:'Spell CPU and DNS letter by letter; read RAM and LAN as words.'},
+    {u:'cs',t:'mc',q:'A LAN is…',a:['a network in a limited area, such as a campus','a network that covers a whole country','another name for the Internet','a type of cable'],w:'A WAN covers a large area; the Internet is the largest WAN.'},
+    {u:'cs',t:'mc',q:'Which device forwards packets between different networks?',a:['a router','a switch','a repeater','a hub'],w:'A router chooses the path with IP addresses. A switch works inside one LAN.'},
+    {u:'cs',t:'mc',q:'Which device connects devices inside the same LAN, using MAC addresses?',a:['a switch','a router','a modem','a firewall'],w:'A router connects different networks.'},
+    {u:'cs',t:'mc',q:'What does DNS do?',a:['It translates domain names into IP addresses','It encrypts web pages','It assigns MAC addresses','It speeds up downloads'],w:'The Domain Name System turns www.example.com into an IP address.'},
+    {u:'cs',t:'mc',q:'A packet is made of a header and a…',a:['payload','firewall','protocol','router'],w:'The header carries addresses; the payload carries the data.'},
+    {u:'cs',t:'mc',q:'A firewall…',a:['filters incoming and outgoing traffic','speeds up the processor','translates names into IP addresses','repairs damaged packets'],w:'It follows security rules.'},
+    {u:'cs',t:'tf',q:'A MAC address is 48 bits long.',a:true,w:'MAC addresses use 48 bits. IPv4 addresses use 32 bits and IPv6 addresses 128 bits.'},
+    {u:'cs',t:'tf',q:'An IPv4 address is 128 bits long.',a:false,w:'IPv4 uses 32 bits. IPv6 uses 128 bits.'},
+    {u:'cs',t:'order',q:'Put the TCP three-way handshake in order.',a:['SYN','SYN-ACK','ACK'],w:'The client sends SYN, the server answers SYN-ACK, and the client confirms with ACK.'},
+    {u:'cs',t:'order',q:'OSI model: put layers 1 to 4 in order, from the bottom up.',a:['Physical','Data Link','Network','Transport'],w:'Please Do Not Throw Sausage Pizza Away: Physical, Data Link, Network, Transport, Session, Presentation, Application.'},
+    {u:'cs',t:'match',q:'Match each element with its OSI layer.',a:[['Ethernet cable','Layer 1, Physical'],['switch','Layer 2, Data Link'],['router','Layer 3, Network'],['TCP','Layer 4, Transport']],w:'HTTP and DNS work at layer 7, Application.'},
+    {u:'cs',t:'mc',q:'In which OSI layer do HTTP and DNS work?',a:['Layer 7, Application','Layer 4, Transport','Layer 3, Network','Layer 1, Physical'],w:'They are application-layer protocols.'},
+    {u:'cs',t:'mc',q:'For a live video call, which protocol is usually the better choice?',a:['UDP','TCP','FTP','SMTP'],w:'Low latency matters more than a few lost packets. TCP resends lost data, which adds delay.'},
+    {u:'cs',t:'mc',q:'For downloading a software update, which protocol is the right choice?',a:['TCP','UDP','ICMP','ARP'],w:'Every byte must arrive, in order: TCP guarantees it.'},
+    {u:'cs',t:'mc',q:'TCP is…',a:['connection-oriented and reliable','connectionless and unreliable','a markup language','a type of network cable'],w:'UDP is connectionless and faster, but delivery is not guaranteed.'},
+    {u:'cs',t:'order',q:'You type a URL and press Enter. Put the steps in order.',a:['DNS lookup','TCP connection','HTTP request','HTTP response','Page rendering'],w:'The IP address is found, the connection opens, the page is requested, sent back, and finally rendered.'},
+    {u:'cs',t:'mc',q:'In a star topology, every device is connected to…',a:['a central switch','its two neighbours','one shared cable','every other device'],w:'Two neighbours is a ring, one shared cable is a bus, every other device is a full mesh.'},
+    {u:'cs',t:'mc',q:'In which topology is every device connected to every other device?',a:['a full mesh','a star','a bus','a ring'],w:'It is very reliable, but it needs many cables.'},
+    {u:'cs',t:'mc',q:'Which program translates the whole source code before the program runs?',a:['a compiler','an interpreter','a debugger','a text editor'],w:'An interpreter executes the code statement by statement, at run time.'},
+    {u:'cs',t:'mc',q:'Which one is NOT a programming language?',a:['HTML','Python','Java','C'],w:'HTML is a markup language: it describes structure but has no variables, conditions or loops.'},
+    {u:'cs',t:'mc',q:'Which language prints text with `console.log("Hi");`?',a:['JavaScript','Python','C','SQL'],w:'Python uses `print()`, C uses `printf()` and SQL uses `SELECT`.'},
+    {u:'cs',t:'mc',q:'Which language prints text with `System.out.println("Hi");`?',a:['Java','JavaScript','C','Python'],w:'JavaScript uses `console.log()`.'},
+    {u:'cs',t:'mc',q:'Java source code is usually compiled to…',a:['bytecode for the JVM','JavaScript','HTML','a PDF file'],w:'The Java Virtual Machine runs the bytecode, often with just-in-time (JIT) compilation.'},
+    {u:'cs',t:'tf',q:'Python is always compiled directly to machine code before it runs.',a:false,w:'Python is usually interpreted: the code is compiled to bytecode, then run by the interpreter.'},
+    {u:'cs',t:'mc',q:'An algorithm is…',a:['a finite sequence of well-defined steps that solves a problem','a programming language','a computer brand','an error message'],w:'Stress the first syllable: AL-go-rithm.'},
+    {u:'cs',t:'mc',q:'The grammar rules of a programming language are its…',a:['syntax','semantics','runtime','library'],w:'Breaking them gives a syntax error.'},
+    {u:'cs',t:'mc',q:'A variable is…',a:['a named storage location whose value can change','a value that never changes','a type of loop','an error in the code'],w:'A value that never changes is a constant.'},
+    {u:'cs',t:'mc',q:'A loop is a control structure that…',a:['repeats a block of code','stops the program','declares a variable','imports a library'],w:'For loops and while loops are the most common.'},
+    {u:'cs',t:'mc',q:'In programming, a library is…',a:['a collection of reusable code','a shop that sells books','a folder of images','a list of errors'],w:'Library = bibliothèque. A bookshop (librairie) is something else!'},
+    {u:'cs',t:'mc',q:'An IDE is…',a:['an application that combines an editor, build tools and a debugger','a programming language','an Internet protocol','a type of processor'],w:'IDE = Integrated Development Environment. Examples: Eclipse, PyCharm.'},
+    {u:'cs',t:'mc',q:'Which paradigm describes WHAT you want rather than HOW to get it, like SQL?',a:['declarative','procedural','object-oriented','assembly'],w:'Procedural code gives the steps one by one.'},
+    {u:'cs',t:'mc',q:'In object-oriented programming, an object combines…',a:['data (attributes) and behaviour (methods)','only functions','only numbers','a compiler and an interpreter'],w:'Java and C++ are object-oriented languages.'},
+    {u:'cs',t:'mc',q:'Which data structure follows LIFO (last in, first out)?',a:['a stack','a queue','a tree','a hash table'],w:'A queue is FIFO: first in, first out.'},
+    {u:'cs',t:'mc',q:'Documents waiting for a printer form a…',a:['queue','stack','tree','graph'],w:'The first document sent is the first printed: FIFO.'},
+    {u:'cs',t:'mc',q:'The Undo button of a text editor is usually built with a…',a:['stack','queue','graph','hash table'],w:'Your last action is the first one undone: last in, first out.'},
+    {u:'cs',t:'mc',q:'Binary search on a sorted array has a complexity of…',a:['O(log n)','O(n)','O(n²)','O(n log n)'],w:'Read it “big O of log n”. Linear search is O(n).'},
+    {u:'cs',t:'mc',q:'How do you read `O(n²)` aloud?',a:['big O of n squared','O number two','zero n two','big O times n'],w:'It means quadratic time, for example bubble sort in the worst case.'},
+    {u:'cs',t:'tf',q:'In Python, `len(marks)` returns the number of elements in the list `marks`.',a:true,w:'For an empty list it returns 0, and dividing by it raises a ZeroDivisionError.'},
+    {u:'cs',t:'mc',q:'What does `404 Not Found` mean?',a:['The server cannot find the page','The server refuses to give access','The server has crashed','Your password is wrong'],w:'`403` means access refused, and `500` means an error on the server.'},
+    {u:'cs',t:'mc',q:'What does `500 Internal Server Error` mean?',a:['Something went wrong on the server','The page does not exist','You are not allowed to see the page','Your connection is too slow'],w:'It is not your fault: the problem is on the server side.'},
+    {u:'cs',t:'match',q:'Match each error message with its meaning.',a:[['404 Not Found','the page does not exist'],['403 Forbidden','access is refused'],['500 Internal Server Error','a problem on the server'],['Connection timed out','no answer in time']],w:'Explain errors in simple English to non-technical users.'},
+    {u:'cs',t:'mc',q:'`Segmentation fault` means the program…',a:['tried to access memory it is not allowed to use','has a spelling mistake in a comment','lost its Internet connection','ran out of battery'],w:'It is a memory access error, common in C and C++.'},
+    {u:'cs',t:'mc',q:'`Permission denied` means…',a:['you do not have the rights to access this file','the file is too big','the server is too slow','the file name contains a space'],w:'You need the right access rights, for example read or write permission.'},
+    {u:'cs',t:'mc',q:'Which commit message follows Git conventions?',a:['Fix crash when the password field is empty','fixed bug','I fixed the crash.','Fixes.'],w:'Use the imperative mood, a capital letter, no final full stop, and be specific.'},
+    {u:'cs',t:'mc',q:'A good bug report contains…',a:['steps to reproduce, the expected result and the actual result','only your opinion of the program','the developer’s phone number','a list of all your files'],w:'The environment (device, browser, version) is useful too.'},
+    {u:'cs',t:'mc',q:'In a daily stand-up meeting, “blockers” are…',a:['problems that stop your work','the best developers','finished tasks','security tools'],w:'A classic stand-up has three parts: yesterday, today and blockers.'},
+    {u:'cs',t:'mc',q:'“Rubber duck debugging” means…',a:['explaining your code aloud, line by line','testing your code on a toy computer','deleting every comment','rewriting the program from scratch'],w:'Explaining the code aloud often reveals the bug. The idea comes from The Pragmatic Programmer (1999).'},
+    {u:'cs',t:'tf',q:'The word “bug” was invented in 1947, when a moth was found in a relay.',a:false,w:'Engineers already used “bug” for faults. The 1947 logbook calls it the “first actual case of bug being found”.'},
+    {u:'cs',t:'mc',q:'Where was the famous 1947 moth found?',a:['in a relay of the Harvard Mark II','in a hard disk','inside a keyboard','in a vacuum tube of ENIAC'],w:'It was stuck in relay 70, Panel F, of the Harvard Mark II.'},
+
+    // ---------------- TECHNICAL ENGLISH (all sessions) ----------------
+    {u:'lang',t:'mc',q:'How do you pronounce “cache”?',a:['like “cash”','like “ca-SHAY”','like “catch”','like “cake”'],w:'Cache sounds exactly like cash, the money.'},
+    {u:'lang',t:'mc',q:'How do you pronounce “queue”?',a:['“KYOO”, like the letter Q','“KWEH”','“KEUH”','“KEW-ee”'],w:'Queue sounds exactly like the letter Q.'},
+    {u:'lang',t:'mc',q:'Where is the stress in “algorithm”?',a:['AL-go-rithm','al-GO-rithm','al-go-RITHM','on every syllable'],w:'Stress the first syllable: AL-guh-rith-um.'},
+    {u:'lang',t:'mc',q:'How do you pronounce “Wi-Fi”?',a:['“WHY-fye”','“WEE-fee”','“WIFF-ee”','“WAY-fay”'],w:'Both syllables rhyme with “high”.'},
+    {u:'lang',t:'mc',q:'How do you pronounce “Linux”?',a:['“LIN-ucks”','“lee-NUX”','“lin-OOKS”','“LEE-noosh”'],w:'The i is short, as in “linen”.'},
+    {u:'lang',t:'mc',q:'How do you pronounce “archive”?',a:['“AR-kive”','“ar-SHEEV”','“ar-CHEEV”','“AR-shiv”'],w:'The “ch” sounds like “k”, as in “architecture”.'},
+    {u:'lang',t:'mc',q:'How do you pronounce “integer”?',a:['“IN-ti-jer”','“in-te-GHER”','“in-TEE-ger”','“in-te-JAIR”'],w:'The g sounds like the j in “jam”.'},
+    {u:'lang',t:'mc',q:'How do you pronounce “Python”?',a:['“PIE-thon”','“pee-TON”','“pee-THON”','“PEE-tun”'],w:'The y sounds like “pie”.'},
+    {u:'lang',t:'mc',q:'Which acronym is usually read as a word, not spelled letter by letter?',a:['RAM','CPU','DNS','HTTP'],w:'LAN and WAN are also read as words.'},
+    {u:'lang',t:'mc',q:'Which acronym is usually spelled letter by letter?',a:['CPU','RAM','LAN','WAN'],w:'C-P-U, D-N-S and H-T-T-P are spelled.'},
+    {u:'lang',t:'mc',q:'The French word “actuel” means…',a:['current','actual','real','active'],w:'In English, “actual” means “réel”. “La version actuelle” is “the current version”.'},
+    {u:'lang',t:'mc',q:'In English, “actually” means…',a:['in fact, really','currently','nowadays','at the moment'],w:'“Actuellement” is “currently” or “at the moment”.'},
+    {u:'lang',t:'mc',q:'The French word “éventuellement” means…',a:['possibly','eventually','finally','quickly'],w:'“Eventually” means “finalement”, in the end.'},
+    {u:'lang',t:'mc',q:'In English, “eventually” means…',a:['in the end','possibly','maybe','at the same time'],w:'“Éventuellement” is “possibly” or “if necessary”.'},
+    {u:'lang',t:'mc',q:'“Une formation” (a course to learn skills) is…',a:['a training course','a formation','a formulation','an information'],w:'In English, “formation” means a shape or an arrangement.'},
+    {u:'lang',t:'mc',q:'“Assister à une conférence” is…',a:['to attend a conference','to assist a conference','to help a conference','to join to a conference'],w:'“To assist” means “to help”.'},
+    {u:'lang',t:'mc',q:'“Contrôler les données” is best translated as…',a:['to check the data','to control the data','to command the data','to drive the data'],w:'“To control” usually means “to direct” or “to command”.'},
+    {u:'lang',t:'mc',q:'“Réaliser un programme” is best translated as…',a:['to develop a program','to realise a program','to achieve a program','to realise of a program'],w:'“To realise” means “se rendre compte”.'},
+    {u:'lang',t:'mc',q:'“L’informatique” is…',a:['computer science','the informatic','the computering','the informatique'],w:'You can also say “IT” (information technology) or “computing”.'},
+    {u:'lang',t:'mc',q:'In English, a “file” is…',a:['un fichier','une file d’attente','une pile','un dossier'],w:'Une file d’attente is a queue; un dossier is a folder.'},
+    {u:'lang',t:'mc',q:'“Une librairie” (a shop) is…',a:['a bookshop','a library','a librarian','a bookcase'],w:'A library is une bibliothèque.'},
+    {u:'lang',t:'match',q:'Match each French word with its English translation.',a:[['actuel','current'],['éventuellement','possibly'],['une formation','a training course'],['une file d’attente','a queue']],w:'False friends look similar but have different meanings.'},
+    {u:'lang',t:'mc',q:'Which sentence is correct?',a:['I installed two pieces of software.','I installed two softwares.','I installed a softwares.','I installed two software.'],w:'Software is uncountable: no “a” and no plural -s.'},
+    {u:'lang',t:'mc',q:'Which sentence is correct?',a:['The data is stored in the cloud.','The datas are stored in the cloud.','A data is stored in the cloud.','The datas is stored in the cloud.'],w:'“Data” never takes -s. “The data are” is also accepted in formal writing.'},
+    {u:'lang',t:'mc',q:'Which sentence is correct?',a:['I need some information about the server.','I need an information about the server.','I need informations about the server.','I need a informations about the server.'],w:'Information is uncountable. Say “a piece of information”.'},
+    {u:'lang',t:'mc',q:'Which sentence is correct?',a:['Thank you for your feedback!','Thank you for your feedbacks!','Thank you for a feedbacks!','Thank you for your feedbackes!'],w:'Feedback is uncountable.'},
+    {u:'lang',t:'mc',q:'Which sentence is correct?',a:['Our supervisor gave us a lot of advice.','Our supervisor gave us many advices.','Our supervisor gave us an advices.','Our supervisor gave us a lot of advices.'],w:'Advice is uncountable. Say “a piece of advice”. The verb is “to advise”.'},
+    {u:'lang',t:'mc',q:'Which sentence is correct?',a:['The lab bought new equipment.','The lab bought new equipments.','The lab bought a new equipments.','The lab bought news equipments.'],w:'Equipment is uncountable.'},
+    {u:'lang',t:'tf',q:'“Hardware” can take a plural -s: “hardwares”.',a:false,w:'Hardware, software, data, information, feedback, advice and equipment are uncountable.'},
+    {u:'lang',t:'mc',q:'Complete: “Don’t forget to ___ your files.”',a:['back up','backup','backed up','backing up'],w:'The verb is two words: back up. The noun is one word: a backup.'},
+    {u:'lang',t:'mc',q:'Complete: “We restored the database from last night’s ___.”',a:['backup','back up','backed up','backing-up'],w:'The noun is one word: a backup.'},
+    {u:'lang',t:'mc',q:'Complete: “Please ___ with your student ID.”',a:['log in','login','logged in','log-ins'],w:'Verb = two words: log in. Noun or adjective = one word: the login page.'},
+    {u:'lang',t:'mc',q:'Complete: “The ___ page is not loading.”',a:['login','log in','logs in','logging-on'],w:'Here it is an adjective, so it is one word.'},
+    {u:'lang',t:'mc',q:'Complete: “It took two hours to ___ the new server.”',a:['set up','setup','set-ups','settle up'],w:'Verb = set up; noun = the setup.'},
+    {u:'lang',t:'mc',q:'Which sentence uses the passive voice correctly?',a:['The code is translated by the compiler.','The code translates by the compiler.','The code is translate by the compiler.','The code was translating by the compiler.'],w:'Passive voice = be + past participle: is translated.'},
+    {u:'lang',t:'mc',q:'“Someone has deleted the log files.” In the passive, this is…',a:['The log files have been deleted.','The log files have deleted.','The log files has been deleted.','The log files were delete.'],w:'Present perfect passive: have been + past participle.'},
+    {u:'lang',t:'mc',q:'“The server will process your request.” In the passive, this is…',a:['Your request will be processed by the server.','Your request will processed by the server.','Your request will be process by the server.','Your request is will processed by the server.'],w:'Future passive: will be + past participle.'},
+    {u:'lang',t:'mc',q:'Which commit message uses the imperative mood?',a:['Add login form','Added login form','Adds login form','Adding login form'],w:'Git commit messages usually start with an imperative verb: Add, Fix, Update, Remove.'},
+    {u:'lang',t:'mc',q:'Choose the correct word: “Registers are faster ___ RAM.”',a:['than','then','that','as'],w:'Comparative + than.'},
+    {u:'lang',t:'mc',q:'Choose the correct form: “Registers are the ___ memory.”',a:['fastest','most fast','more fast','fastly'],w:'Short adjectives: fast, faster, the fastest.'},
+    {u:'lang',t:'mc',q:'Choose the correct form: “This algorithm is ___ than the old one.”',a:['more efficient','efficienter','most efficient','more efficienter'],w:'Long adjectives use more and the most.'},
+    {u:'lang',t:'mc',q:'Choose the correct word: “RAM is volatile, ___ an SSD is non-volatile.”',a:['whereas','because','so','therefore'],w:'“Whereas” introduces a contrast.'},
+    {u:'lang',t:'mc',q:'How do you say `@`?',a:['at','arobase','snail','a-round'],w:'“Arobase” is French. In an email address, say “student at example dot com”.'},
+    {u:'lang',t:'mc',q:'How do you say `#` in British English?',a:['hash','star','slash','dollar'],w:'In American English it is often called the pound sign.'},
+    {u:'lang',t:'mc',q:'How do you say `_`?',a:['underscore','dash','slash','hyphen'],w:'A hyphen or dash is the short line in the middle: -.'},
+    {u:'lang',t:'mc',q:'How do you say `/`?',a:['slash (forward slash)','backslash','pipe','dash'],w:'A backslash is `\\`, used in Windows paths.'},
+    {u:'lang',t:'mc',q:'How do you say `;`?',a:['semicolon','colon','comma','full stop'],w:'A colon is `:`.'},
+    {u:'lang',t:'mc',q:'How do you read `!=` in code?',a:['is not equal to','is equal to','is greater than','assign'],w:'`==` is read “is equal to”, and a single `=` is an assignment.'},
+    {u:'lang',t:'match',q:'Match each symbol with its name.',a:[['{ }','curly brackets'],['[ ]','square brackets'],['( )','parentheses'],['< >','angle brackets']],w:'Curly brackets are also called braces; parentheses are also called round brackets.'}
+  ];
+
+  // ================================================================
+  // SETTINGS AND CONSTANTS
+  // ================================================================
+  var LENGTHS = [10, 20, 30, 50];
+  var TIME = { mc: 20, tf: 15, order: 30, match: 45 };   // seconds per question type
+  var HINTS = { mc: 'Choose one answer', tf: 'True or false?', order: 'Tap the items in the right order', match: 'Tap a word, then its meaning' };
+  var COLORS = ['var(--tA)', 'var(--tB)', 'var(--tC)', 'var(--tD)'];
+  var PAIRS = ['#6ea8fe', '#e5b84b', '#c39bf5', '#5fd0e6'];   // match colours: no red or green, so they never look like right/wrong
+  var KEY = 'dye2-';                                     // prefix for saved data on this device
+
+  // give every question a stable id: units-1, units-2, ...
+  var BY_ID = {};
+  (function () {
+    var count = {};
+    for (var i = 0; i < BANK.length; i++) {
+      var q = BANK[i];
+      count[q.u] = (count[q.u] || 0) + 1;
+      q.id = q.u + '-' + count[q.u];
+      BY_ID[q.id] = q;
+    }
+  })();
+
+  var settings = { unit: 'all', len: 20, mode: 'challenge' };
+  var run = null;   // the game in progress
+  var cur = null;   // the question on screen
+  var raf = 0;      // timer animation frame
+
+  // ================================================================
+  // SMALL HELPERS
+  // ================================================================
+  function $(id) { return document.getElementById(id); }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function unitById(id) {
+    for (var i = 0; i < UNITS.length; i++) { if (UNITS[i].id === id) return UNITS[i]; }
+    return { id: id, name: id, short: id };
+  }
+  function save(k, v) { try { localStorage.setItem(KEY + k, v); } catch (e) { /* storage blocked */ } }
+  function load(k) { try { return localStorage.getItem(KEY + k); } catch (e) { return null; } }
+  function reducedMotion() { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+
+  // text with `code` parts, built safely with text nodes
+  function rich(el, text) {
+    el.textContent = '';
+    String(text).split('`').forEach(function (part, i) {
+      if (!part) return;
+      if (i % 2 === 1) { var c = document.createElement('code'); c.textContent = part; el.appendChild(c); }
+      else { el.appendChild(document.createTextNode(part)); }
+    });
+  }
+
+  function show(name) {
+    ['start', 'play', 'end'].forEach(function (n) { $(n).hidden = (n !== name); });
+    if (name === 'start') updateBestLine();
+    window.scrollTo(0, 0);
+  }
+
+  // ================================================================
+  // START SCREEN
+  // ================================================================
+  function countFor(unit) {
+    if (unit === 'all') return BANK.length;
+    var n = 0;
+    for (var i = 0; i < BANK.length; i++) { if (BANK[i].u === unit) n++; }
+    return n;
+  }
+
+  function optionEl(name, value, label, small, checked) {
+    var l = document.createElement('label'); l.className = 'opt';
+    var inp = document.createElement('input');
+    inp.type = 'radio'; inp.name = name; inp.value = value; inp.id = name + '-' + value; inp.checked = !!checked;
+    var s = document.createElement('span'); s.textContent = label;
+    if (small) { var sm = document.createElement('small'); sm.textContent = small; s.appendChild(document.createTextNode(' ')); s.appendChild(sm); }
+    l.appendChild(inp); l.appendChild(s);
+    return l;
+  }
+
+  function buildSetup() {
+    var uo = $('unitOptions'); uo.textContent = '';
+    [{ id: 'all', short: 'All topics' }].concat(UNITS).forEach(function (u) {
+      uo.appendChild(optionEl('unit', u.id, u.short, String(countFor(u.id)), settings.unit === u.id));
+    });
+    var lo = $('lenOptions'); lo.textContent = '';
+    LENGTHS.forEach(function (n) { lo.appendChild(optionEl('len', String(n), String(n), null, settings.len === n)); });
+    var modes = document.querySelectorAll('input[name=mode]');
+    for (var i = 0; i < modes.length; i++) { modes[i].checked = (modes[i].value === settings.mode); }
+    $('factQ').textContent = BANK.length;
+    $('lede').textContent = 'A revision game for the whole Technical English course: units and measurement, mechanical, electrical, computer science and technical English. Answer fast: in Challenge mode, speed and streaks earn bonus XP.';
+    updateBestLine();
+  }
+
+  function readSettings() {
+    var f = $('setup');
+    var u = f.querySelector('input[name=unit]:checked');
+    var l = f.querySelector('input[name=len]:checked');
+    var m = f.querySelector('input[name=mode]:checked');
+    settings.unit = u ? u.value : 'all';
+    settings.len = l ? parseInt(l.value, 10) : 20;
+    settings.mode = m ? m.value : 'challenge';
+    save('unit', settings.unit); save('len', String(settings.len)); save('mode', settings.mode);
+  }
+
+  function bestKey(unit, len, mode) { return 'best-' + unit + '-' + len + '-' + mode; }
+
+  function updateBestLine() {
+    var b = parseInt(load(bestKey(settings.unit, settings.len, settings.mode)) || '0', 10) || 0;
+    $('bestLine').textContent = b > 0
+      ? 'Your best on this device with these settings: ' + b + ' XP'
+      : 'Tip: on a computer, you can answer with the keys 1 to 4 and press Enter for the next question.';
+  }
+
+  // ================================================================
+  // CHOOSING THE QUESTIONS
+  // Questions you have not seen recently come first.
+  // ================================================================
+  function seenList() {
+    var arr = [];
+    try { arr = JSON.parse(load('seen') || '[]'); } catch (e) { arr = []; }
+    return Array.isArray(arr) ? arr : [];
+  }
+  function remember(ids) {
+    var arr = seenList().concat(ids);
+    if (arr.length > 220) arr = arr.slice(arr.length - 220);
+    save('seen', JSON.stringify(arr));
+  }
+  function freshFirst(list, seen) {
+    var fresh = [], old = [];
+    shuffle(list).forEach(function (q) { (seen[q.id] ? old : fresh).push(q); });
+    return fresh.concat(old);
+  }
+  function pickQuestions() {
+    var seen = {};
+    seenList().forEach(function (id) { seen[id] = true; });
+    var n = settings.len, chosen = [];
+    if (settings.unit === 'all') {
+      // take the topics in turn, so every topic is represented
+      var lists = shuffle(UNITS).map(function (u) {
+        return freshFirst(BANK.filter(function (q) { return q.u === u.id; }), seen);
+      });
+      var k = 0, added = true;
+      while (chosen.length < n && added) {
+        added = false;
+        for (var j = 0; j < lists.length && chosen.length < n; j++) {
+          if (k < lists[j].length) { chosen.push(lists[j][k].id); added = true; }
+        }
+        k++;
+      }
+    } else {
+      freshFirst(BANK.filter(function (q) { return q.u === settings.unit; }), seen)
+        .slice(0, n).forEach(function (q) { chosen.push(q.id); });
+    }
+    return shuffle(chosen);
+  }
+
+  // ================================================================
+  // GAME FLOW
+  // ================================================================
+  function startRun(ids, isRetry) {
+    cancelAnimationFrame(raf);
+    var name = ($('player').value || '').trim().slice(0, 24);
+    save('name', name);
+    run = {
+      ids: ids, idx: 0, score: 0, streak: 0, bestStreak: 0, correct: 0, log: [],
+      fiftyUsed: false, retry: !!isRetry, missed: [],
+      unit: settings.unit, len: settings.len, mode: settings.mode, name: name
+    };
+    if (!isRetry) remember(ids);
+    show('play');
+    $('timer').hidden = (run.mode !== 'challenge');
+    renderQuestion();
+  }
+
+  function updateStatus() {
+    $('qnum').textContent = (run.idx + 1) + '/' + run.ids.length;
+    $('xp').textContent = run.score;
+    $('combo').textContent = run.streak >= 2 ? '×' + run.streak : String(run.streak);
+  }
+
+  function renderQuestion() {
+    var q = BY_ID[run.ids[run.idx]];
+    cur = { q: q, answered: false, options: null, removed: {}, picked: [], pool: null,
+            terms: null, defs: null, pairs: {}, sel: null, limit: 0, deadline: 0 };
+    updateStatus();
+    var u = unitById(q.u);
+    $('qunit').textContent = u.name;
+    $('qhint').textContent = HINTS[q.t];
+    $('qcmd').textContent = '$ ask --topic ' + u.id + ' --type ' + q.t;
+    rich($('qtext'), q.q);
+    $('fb').hidden = true;
+
+    var box = $('answers');
+    box.textContent = '';
+    box.className = 'answers';
+    if (q.t === 'mc') {
+      cur.options = shuffle(q.a.map(function (t, i) { return { t: t, ok: i === 0 }; }));
+      box.classList.add('cols');
+      cur.options.forEach(function (o, i) { box.appendChild(tile('ABCD'.charAt(i), o.t, COLORS[i], i)); });
+    } else if (q.t === 'tf') {
+      cur.options = [{ t: 'True', ok: q.a === true }, { t: 'False', ok: q.a === false }];
+      box.classList.add('cols');
+      box.appendChild(tile('T', 'True', COLORS[1], 0));
+      box.appendChild(tile('F', 'False', COLORS[0], 1));
+    } else if (q.t === 'order') {
+      var items = shuffle(q.a), guard = 0;
+      while (items.join('|') === q.a.join('|') && guard++ < 10) items = shuffle(q.a);
+      cur.pool = items;
+      renderOrder();
+    } else {
+      var idx = shuffle(q.a.map(function (p, i) { return i; }));
+      var didx = shuffle(idx), g2 = 0;
+      while (didx.join(',') === idx.join(',') && g2++ < 10) didx = shuffle(idx);
+      cur.terms = idx.map(function (i) { return { text: q.a[i][0], key: i }; });
+      cur.defs = didx.map(function (i) { return { text: q.a[i][1], key: i }; });
+      cur.sel = 0;
+      renderMatch();
+    }
+
+    $('fifty').disabled = run.fiftyUsed || q.t !== 'mc';
+    if (run.mode === 'challenge') startTimer(TIME[q.t]);
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- multiple choice and true/false ----------
+  function tile(letter, text, color, index) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tile';
+    b.style.setProperty('--tile', color);
+    var badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = letter;
+    var label = document.createElement('span'); label.className = 'label'; rich(label, text);
+    b.appendChild(badge); b.appendChild(label);
+    b.addEventListener('click', function () { answerChoice(index); });
+    return b;
+  }
+  function addMark(el, ch) { var m = document.createElement('span'); m.className = 'mark'; m.setAttribute('aria-hidden', 'true'); m.textContent = ch; el.appendChild(m); }
+
+  function answerChoice(i) {
+    if (!cur || cur.answered || cur.removed[i]) return;
+    cur.answered = true;
+    var tiles = $('answers').querySelectorAll('.tile');
+    for (var k = 0; k < tiles.length; k++) {
+      tiles[k].disabled = true;
+      if (cur.options[k].ok) { tiles[k].classList.add('is-correct'); addMark(tiles[k], '✓'); }
+      else if (k === i) { tiles[k].classList.add('is-wrong'); addMark(tiles[k], '✗'); }
+      else if (!cur.removed[k]) tiles[k].classList.add('is-dim');
+    }
+    finish(cur.options[i].ok, false);
+  }
+
+  function useFifty() {
+    if (!cur || cur.answered || run.fiftyUsed || cur.q.t !== 'mc') return;
+    run.fiftyUsed = true;
+    var wrong = [];
+    cur.options.forEach(function (o, i) { if (!o.ok) wrong.push(i); });
+    var tiles = $('answers').querySelectorAll('.tile');
+    shuffle(wrong).slice(0, 2).forEach(function (i) {
+      cur.removed[i] = true;
+      tiles[i].disabled = true;
+      tiles[i].classList.add('is-removed');
+      tiles[i].setAttribute('aria-hidden', 'true');
+    });
+    $('fifty').disabled = true;
+  }
+
+  // ---------- order ----------
+  function renderOrder() {
+    var box = $('answers');
+    box.textContent = '';
+    box.className = 'answers';
+    if (cur.picked.length === 0) {
+      var empty = document.createElement('p');
+      empty.className = 'placeholder';
+      empty.textContent = 'Tap the items below in the right order.';
+      box.appendChild(empty);
+    } else {
+      var list = document.createElement('ol');
+      list.className = 'picked';
+      list.setAttribute('aria-label', 'Your order');
+      cur.picked.forEach(function (t, i) {
+        var li = document.createElement('li');
+        li.textContent = t;
+        if (cur.answered) li.classList.add(t === cur.q.a[i] ? 'is-correct' : 'is-wrong');
+        list.appendChild(li);
+      });
+      box.appendChild(list);
+    }
+    var pool = document.createElement('div');
+    pool.className = 'pool';
+    cur.pool.forEach(function (t) {
+      var used = cur.picked.indexOf(t) !== -1;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip' + (used ? ' is-used' : '');
+      b.textContent = t;
+      b.disabled = used || cur.answered;
+      b.addEventListener('click', function () {
+        if (cur.answered || cur.picked.indexOf(t) !== -1) return;
+        cur.picked.push(t);
+        if (cur.picked.length === cur.pool.length) checkOrder(); else renderOrder();
+      });
+      pool.appendChild(b);
+    });
+    box.appendChild(pool);
+    if (!cur.answered) {
+      var row = document.createElement('div'); row.className = 'row';
+      var reset = document.createElement('button');
+      reset.type = 'button'; reset.className = 'ghost'; reset.textContent = 'Reset order';
+      reset.disabled = cur.picked.length === 0;
+      reset.addEventListener('click', function () { if (cur.answered) return; cur.picked = []; renderOrder(); });
+      row.appendChild(reset);
+      box.appendChild(row);
+    }
+  }
+
+  function checkOrder() {
+    cur.answered = true;
+    var ok = cur.picked.join('|') === cur.q.a.join('|');
+    renderOrder();
+    finish(ok, false);
+  }
+
+  // ---------- match ----------
+  function nextUnpaired() {
+    for (var i = 0; i < cur.terms.length; i++) { if (!cur.pairs.hasOwnProperty(i)) return i; }
+    return null;
+  }
+
+  function renderMatch() {
+    var box = $('answers');
+    box.textContent = '';
+    box.className = 'answers';
+    var pairedDef = {};
+    Object.keys(cur.pairs).forEach(function (tp) { pairedDef[cur.pairs[tp]] = parseInt(tp, 10); });
+
+    var terms = document.createElement('div');
+    terms.className = 'terms';
+    terms.setAttribute('role', 'group');
+    terms.setAttribute('aria-label', 'Words');
+    cur.terms.forEach(function (t, tp) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'term-chip';
+      b.style.setProperty('--pc', PAIRS[tp]);
+      if (cur.pairs.hasOwnProperty(tp)) b.classList.add('is-paired');
+      if (cur.sel === tp && !cur.answered) b.classList.add('is-selected');
+      b.setAttribute('aria-pressed', (cur.sel === tp && !cur.answered) ? 'true' : 'false');
+      var dot = document.createElement('span'); dot.className = 'dot'; dot.setAttribute('aria-hidden', 'true');
+      var lab = document.createElement('span'); rich(lab, t.text);
+      b.appendChild(dot); b.appendChild(lab);
+      b.disabled = cur.answered;
+      b.addEventListener('click', function () {
+        if (cur.answered) return;
+        if (cur.pairs.hasOwnProperty(tp)) delete cur.pairs[tp];
+        cur.sel = tp;
+        renderMatch();
+      });
+      terms.appendChild(b);
+    });
+
+    var defs = document.createElement('div');
+    defs.className = 'defs';
+    cur.defs.forEach(function (d, dp) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'def';
+      if (pairedDef.hasOwnProperty(dp)) {
+        var tp = pairedDef[dp];
+        var good = cur.terms[tp].key === d.key;
+        b.classList.add('is-paired');
+        b.style.setProperty('--pc', PAIRS[tp]);
+        var tag = document.createElement('span'); tag.className = 'tag';
+        rich(tag, (cur.answered ? (good ? '\u2713 ' : '\u2717 ') : '') + cur.terms[tp].text);
+        b.appendChild(tag);
+        if (cur.answered) b.classList.add(good ? 'is-correct' : 'is-wrong');
+      }
+      var lab = document.createElement('span'); rich(lab, d.text);
+      b.appendChild(lab);
+      b.disabled = cur.answered;
+      b.addEventListener('click', function () {
+        if (cur.answered) return;
+        if (pairedDef.hasOwnProperty(dp)) {        // tap a paired meaning to undo it
+          var t0 = pairedDef[dp];
+          delete cur.pairs[t0];
+          cur.sel = t0;
+          renderMatch();
+          return;
+        }
+        if (cur.sel === null) return;
+        cur.pairs[cur.sel] = dp;
+        cur.sel = nextUnpaired();
+        renderMatch();
+      });
+      defs.appendChild(b);
+    });
+
+    box.appendChild(terms);
+    box.appendChild(defs);
+
+    if (!cur.answered) {
+      var done = Object.keys(cur.pairs).length;
+      var row = document.createElement('div'); row.className = 'row';
+      var reset = document.createElement('button');
+      reset.type = 'button'; reset.className = 'ghost'; reset.textContent = 'Reset pairs';
+      reset.disabled = done === 0;
+      reset.addEventListener('click', function () { cur.pairs = {}; cur.sel = 0; renderMatch(); });
+      row.appendChild(reset);
+      box.appendChild(row);
+      var check = document.createElement('button');
+      check.type = 'button'; check.className = 'btn'; check.id = 'checkPairs';
+      check.textContent = done < cur.terms.length ? 'Pairs made: ' + done + '/' + cur.terms.length : 'Check my pairs';
+      check.disabled = done < cur.terms.length;
+      check.addEventListener('click', checkMatch);
+      box.appendChild(check);
+    }
+  }
+
+  function checkMatch() {
+    if (!cur || cur.answered) return;
+    cur.answered = true;
+    var ok = true;
+    for (var tp = 0; tp < cur.terms.length; tp++) {
+      var dp = cur.pairs[tp];
+      if (dp === undefined || cur.terms[tp].key !== cur.defs[dp].key) ok = false;
+    }
+    renderMatch();
+    finish(ok, false);
+  }
+
+  // ---------- timer ----------
+  function startTimer(sec) {
+    cancelAnimationFrame(raf);
+    cur.limit = sec * 1000;
+    cur.deadline = performance.now() + cur.limit;
+    var bar = $('timebar'), label = $('timeleft'), mine = cur;
+    function tick() {
+      if (cur !== mine || cur.answered) return;
+      var left = Math.max(0, cur.deadline - performance.now());
+      bar.style.transform = 'scaleX(' + (left / cur.limit) + ')';
+      if (left < 5000) bar.classList.add('is-low'); else bar.classList.remove('is-low');
+      label.textContent = Math.ceil(left / 1000) + ' s';
+      if (left <= 0) { timeout(); return; }
+      raf = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  function timeout() {
+    if (!cur || cur.answered) return;
+    cur.answered = true;
+    var t = cur.q.t;
+    if (t === 'order') renderOrder();
+    else if (t === 'match') renderMatch();
+    else {
+      var tiles = $('answers').querySelectorAll('.tile');
+      for (var k = 0; k < tiles.length; k++) {
+        tiles[k].disabled = true;
+        if (cur.options[k].ok) { tiles[k].classList.add('is-correct'); addMark(tiles[k], '✓'); }
+        else tiles[k].classList.add('is-dim');
+      }
+    }
+    finish(false, true);
+  }
+
+  // ---------- after an answer ----------
+  function answerText(q) {
+    if (q.t === 'mc') return q.a[0];
+    if (q.t === 'tf') return q.a ? 'True' : 'False';
+    if (q.t === 'order') return q.a.join(' → ');
+    return q.a.map(function (p) { return p[0] + ' → ' + p[1]; }).join(';  ');
+  }
+
+  function finish(ok, timedOut) {
+    var left = (run.mode === 'challenge' && cur.limit > 0) ? Math.max(0, cur.deadline - performance.now()) : 0;
+    cancelAnimationFrame(raf);
+    $('fifty').disabled = true;
+    var gain = 0;
+    if (ok) {
+      run.streak += 1;
+      run.correct += 1;
+      if (run.streak > run.bestStreak) run.bestStreak = run.streak;
+      var speed = (run.mode === 'challenge' && cur.limit > 0) ? Math.round(50 * left / cur.limit) : 0;
+      gain = 100 + speed + Math.min(run.streak - 1, 5) * 10;
+      run.score += gain;
+    } else {
+      run.streak = 0;
+    }
+    run.log.push({ id: cur.q.id, ok: ok });
+    updateStatus();
+
+    var fb = $('fb');
+    fb.className = 'fb ' + (ok ? 'is-ok' : 'is-bad');
+    $('fbTitle').textContent = ok ? 'Correct!' : (timedOut ? 'Time’s up' : 'Not quite');
+    var g = $('fbGain');
+    g.textContent = '+' + gain + ' XP';
+    g.classList.remove('pop'); void g.offsetWidth; if (ok) g.classList.add('pop');
+    rich($('fbAnswer'), 'Answer: ' + answerText(cur.q));
+    rich($('fbWhy'), cur.q.w);
+    $('next').textContent = (run.idx + 1 < run.ids.length) ? 'Next question' : 'See my score';
+    fb.hidden = false;
+    try { $('next').focus({ preventScroll: true }); } catch (e) { /* old browser */ }
+    try { fb.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'nearest' }); } catch (e) { fb.scrollIntoView(); }
+  }
+
+  function nextQuestion() {
+    if (!run || !cur || !cur.answered) return;
+    if (run.idx + 1 < run.ids.length) { run.idx += 1; renderQuestion(); }
+    else endGame();
+  }
+
+  // ================================================================
+  // END SCREEN
+  // ================================================================
+  function rankFor(pct) {
+    if (pct >= 100) return 'Chief Engineer';
+    if (pct >= 85) return 'Lead Engineer';
+    if (pct >= 70) return 'Senior Engineer';
+    if (pct >= 50) return 'Engineer';
+    if (pct >= 30) return 'Junior Engineer';
+    return 'Intern';
+  }
+
+  function endGame() {
+    cancelAnimationFrame(raf);
+    var answered = run.log.length;
+    if (answered === 0) { show('start'); return; }
+    var complete = answered === run.ids.length;
+    show('end');
+
+    var pct = Math.round(100 * run.correct / answered);
+    var rankPct = Math.round(100 * run.correct / run.ids.length);   // unanswered questions count as missed
+    $('endRank').textContent = rankFor(rankPct);
+    $('endName').textContent = run.name || 'Player';
+    $('endXP').textContent = run.score;
+    $('endAcc').textContent = run.correct + '/' + answered;
+    $('endPct').textContent = pct + '%';
+    $('endStreak').textContent = run.bestStreak;
+
+    var newBest = false, line = '';
+    if (run.retry) {
+      line = 'Retry round: this score is not saved as a record.';
+    } else if (!complete) {
+      line = 'You stopped early: finish all the questions to set a record.';
+    } else {
+      var key = bestKey(run.unit, run.len, run.mode);
+      var prev = parseInt(load(key) || '0', 10) || 0;
+      if (run.score > prev) { save(key, String(run.score)); newBest = prev > 0; }
+      line = 'Best on this device with these settings: ' + Math.max(prev, run.score) + ' XP';
+    }
+    $('newBest').hidden = !newBest;
+    $('endBestLine').textContent = line;
+
+    // score by topic
+    var by = {};
+    run.log.forEach(function (l) {
+      var u = BY_ID[l.id].u;
+      if (!by[u]) by[u] = { n: 0, c: 0 };
+      by[u].n++; if (l.ok) by[u].c++;
+    });
+    var used = UNITS.filter(function (u) { return by[u.id]; });
+    $('breakWrap').hidden = used.length < 2;
+    var bl = $('breakdown'); bl.textContent = '';
+    used.forEach(function (u) {
+      var li = document.createElement('li');
+      var nm = document.createElement('span'); nm.className = 'bname'; nm.textContent = u.name;
+      var nu = document.createElement('span'); nu.className = 'bnum'; nu.textContent = by[u.id].c + '/' + by[u.id].n;
+      var tr = document.createElement('div'); tr.className = 'btrack';
+      var fi = document.createElement('div'); fi.className = 'bfill'; fi.style.width = Math.round(100 * by[u.id].c / by[u.id].n) + '%';
+      tr.appendChild(fi); li.appendChild(nm); li.appendChild(nu); li.appendChild(tr);
+      bl.appendChild(li);
+    });
+
+    // mistakes
+    var missed = run.log.filter(function (l) { return !l.ok; });
+    run.missed = missed.map(function (l) { return l.id; });
+    $('retry').hidden = missed.length === 0;
+    $('retry').textContent = 'Retry my mistakes (' + missed.length + ')';
+    $('reviewWrap').hidden = missed.length === 0;
+    $('perfect').hidden = missed.length !== 0;
+    var list = $('review'); list.textContent = '';
+    missed.forEach(function (l) {
+      var q = BY_ID[l.id];
+      var li = document.createElement('li');
+      var pq = document.createElement('p'); pq.className = 'rq'; rich(pq, q.q);
+      var pa = document.createElement('p'); pa.className = 'ra'; rich(pa, '✓ ' + answerText(q));
+      var pw = document.createElement('p'); pw.className = 'rw'; rich(pw, q.w);
+      li.appendChild(pq); li.appendChild(pa); li.appendChild(pw);
+      list.appendChild(li);
+    });
+  }
+
+  // ================================================================
+  // WIRING
+  // ================================================================
+  $('setup').addEventListener('change', function () { readSettings(); updateBestLine(); });
+  $('setup').addEventListener('submit', function (e) {
+    e.preventDefault();
+    readSettings();
+    startRun(pickQuestions(), false);
+  });
+  $('next').addEventListener('click', nextQuestion);
+  $('fifty').addEventListener('click', useFifty);
+  $('quit').addEventListener('click', function () {
+    if (!run) { show('start'); return; }
+    cancelAnimationFrame(raf);
+    if (cur) cur.answered = true;
+    endGame();
+  });
+  $('retry').addEventListener('click', function () { if (run && run.missed.length) startRun(shuffle(run.missed), true); });
+  $('again').addEventListener('click', function () { startRun(pickQuestions(), false); });
+  $('settings').addEventListener('click', function () { show('start'); });
+
+  // keyboard: 1-4 or A-D to answer, Enter for the next question
+  document.addEventListener('keydown', function (e) {
+    if ($('play').hidden || !cur) return;
+    var tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    var k = e.key;
+    if (cur.answered) {
+      if ((k === 'Enter' || k === ' ') && tag !== 'BUTTON' && !$('fb').hidden) { e.preventDefault(); nextQuestion(); }
+      return;
+    }
+    if (cur.q.t === 'mc' || cur.q.t === 'tf') {
+      var map = cur.q.t === 'tf'
+        ? { '1': 0, '2': 1, 't': 0, 'f': 1, 'T': 0, 'F': 1 }
+        : { '1': 0, '2': 1, '3': 2, '4': 3, 'a': 0, 'b': 1, 'c': 2, 'd': 3, 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
+      if (map.hasOwnProperty(k)) {
+        var i = map[k];
+        if (i < cur.options.length && !cur.removed[i]) { e.preventDefault(); answerChoice(i); }
+      }
+    }
+  });
+
+  // restore the last settings and name used on this device
+  (function init() {
+    var su = load('unit'), sl = parseInt(load('len') || '', 10), sm = load('mode'), nm = load('name');
+    if (su && (su === 'all' || UNITS.some(function (u) { return u.id === su; }))) settings.unit = su;
+    if (LENGTHS.indexOf(sl) !== -1) settings.len = sl;
+    if (sm === 'challenge' || sm === 'practice') settings.mode = sm;
+    if (nm) $('player').value = nm;
+    buildSetup();
+    show('start');
+  })();
+})();
+</script>
+</body>
+</html>
